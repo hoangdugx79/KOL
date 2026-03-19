@@ -1,0 +1,145 @@
+@model KOL_KOC_TAAA.ViewModels.BookingListViewModel
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Quản lý Hợp tác - KOL Market";
+}
+
+<div class="container py-5">
+    <div class="mb-5" data-reveal="fade-up">
+        <h1 class="lux-h1">Quản lý <span class="text-gradient-gold">Hợp tác</span></h1>
+        <p class="text-muted">Theo dõi và quản lý các yêu cầu booking cũng như dự án đang triển khai.</p>
+    </div>
+
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs border-0 mb-4 gap-4" id="bookingTabs" role="tablist" data-reveal="fade-up">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active lux-tab" id="requests-tab" data-bs-toggle="tab" data-bs-target="#requests" type="button" role="tab">
+                @(User.IsInRole("KOL") ? "Yêu cầu đến" : "Yêu cầu đã gửi")
+                <span class="badge bg-gold ms-2">@(User.IsInRole("KOL") ? Model.ReceivedRequests.Count : Model.SentRequests.Count)</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link lux-tab" id="active-tab" data-bs-toggle="tab" data-bs-target="#active" type="button" role="tab">
+                Dự án đang chạy
+                <span class="badge bg-indigo ms-2">@Model.ActiveBookings.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="bookingTabsContent" data-reveal="fade-up">
+        <!-- Requests Tab -->
+        <div class="tab-pane fade show active" id="requests" role="tabpanel">
+            <div class="row g-4">
+                @{
+                    var displayRequests = User.IsInRole("KOL") ? Model.ReceivedRequests : Model.SentRequests;
+                }
+                @if (displayRequests.Any())
+                {
+                    foreach (var request in displayRequests)
+                    {
+                        <div class="col-12">
+                            <div class="lux-surface p-4 d-md-flex align-items-center justify-content-between">
+                                <div class="mb-3 mb-md-0">
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="lux-cap small px-2 py-1 bg-light">#@request.Id.ToString()[..8].ToUpper()</span>
+                                        <span class="badge @(request.Status == "sent" ? "bg-warning" : "bg-secondary")">@request.Status.ToUpper()</span>
+                                    </div>
+                                    <h5 class="lux-h2 mb-1">@request.Title</h5>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-person me-1"></i> @(User.IsInRole("KOL") ? request.CustomerUser?.FullName : request.KolUser?.User?.FullName)
+                                        <span class="mx-2">|</span>
+                                        <i class="bi bi-calendar-event me-1"></i> @request.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    @if (User.IsInRole("KOL") && request.Status == "sent")
+                                    {
+                                        <form asp-action="Respond" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@request.Id" />
+                                            <input type="hidden" name="status" value="accepted" />
+                                            <button type="submit" class="lux-btn-primary btn-sm">CHẤP NHẬN</button>
+                                        </form>
+                                        <form asp-action="Respond" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="requestId" value="@request.Id" />
+                                            <input type="hidden" name="status" value="rejected" />
+                                            <button type="submit" class="lux-btn-outline btn-sm">TỪ CHỐI</button>
+                                        </form>
+                                    }
+                                    @if (request.Status == "accepted" && request.Booking != null)
+                                    {
+                                        <a asp-action="Detail" asp-route-id="@request.Booking.Id" class="lux-btn-primary btn-sm">QUẢN LÝ ĐƠN HÀNG</a>
+                                    }
+                                    <a asp-controller="Chat" asp-action="Conversation" asp-route-id="@request.ChatConversations.FirstOrDefault()?.Id" class="lux-btn-outline btn-sm">NHẮN TIN</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">Không có yêu cầu nào được tìm thấy.</p>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Active Bookings Tab -->
+        <div class="tab-pane fade" id="active" role="tabpanel">
+            <div class="row g-4">
+                @if (Model.ActiveBookings.Any())
+                {
+                    foreach (var booking in Model.ActiveBookings)
+                    {
+                        <div class="col-md-6 col-lg-4">
+                            <div class="lux-surface p-4 h-100">
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="lux-cap small">#@booking.Id.ToString()[..8].ToUpper()</span>
+                                    <span class="badge bg-indigo">@booking.Status.ToUpper()</span>
+                                </div>
+                                <h6 class="fw-bold mb-3">@booking.BookingRequest.Title</h6>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between small mb-1">
+                                        <span class="text-muted">Tiến độ</span>
+                                        <span class="fw-bold">40%</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-gold" style="width: 40%"></div>
+                                    </div>
+                                </div>
+                                <a asp-action="Detail" asp-route-id="@booking.Id" class="lux-btn-outline w-100 text-center py-2">QUẢN LÝ TIẾN ĐỘ</a>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12 text-center py-5">
+                        <p class="text-muted">Bạn chưa có dự án nào đang chạy.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lux-tab {
+        border-radius: 0;
+        border: none;
+        color: var(--lux-text-dim);
+        font-weight: 500;
+        padding: 10px 0;
+        border-bottom: 2px solid transparent;
+        transition: all 0.3s ease;
+    }
+    .lux-tab:hover, .lux-tab.active {
+        color: var(--lux-accent-gold);
+        border-bottom-color: var(--lux-accent-gold);
+        background: transparent !important;
+    }
+    .badge.bg-gold { background: var(--lux-accent-gold); color: black; }
+    .badge.bg-indigo { background: var(--lux-primary-indigo); color: white; }
+</style>

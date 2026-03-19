@@ -1,0 +1,69 @@
+@model KOL_KOC_TAAA.ViewModels.HomeIndexViewModel
+@{
+    ViewData["Title"] = "Marketplace - Kết nối KOL/KOC chuyên nghiệp";
+    Layout = "_LayoutLuxury";
+}
+
+<!-- 1. HERO SECTION -->
+@await Html.PartialAsync("Partials/_HeroSection", Model)
+
+<!-- 2. BRAND LOGOS -->
+@await Html.PartialAsync("Partials/_BrandLogos", Model.PartnerBrands)
+
+<!-- 3. FEATURED MARQUEE -->
+@await Html.PartialAsync("Partials/_FeaturedCreatorsMarquee", Model.FeaturedKols)
+
+<!-- 4. CORE STATS -->
+@await Html.PartialAsync("Partials/_StatsSection", Model.Stats)
+
+<!-- 5. CONNECT BENEFITS -->
+@await Html.PartialAsync("Partials/_ConnectBenefits")
+
+<!-- 6. CASE STUDIES -->
+@await Html.PartialAsync("Partials/_CaseStudies", Model.CaseStudies)
+
+<!-- 7. RECOMMENDED SECTION (REFINED BENTO RHYTHM) -->
+@await Html.PartialAsync("Partials/_RecommendedCreators", Model.RecommendedKols)
+
+<!-- 8. TESTIMONIALS -->
+@await Html.PartialAsync("Partials/_Testimonials", Model.Testimonials)
+
+<!-- 9. FINAL CTA -->
+<section class="py-5 bg-indigo text-white overflow-hidden position-relative">
+    <div class="container py-5 text-center position-relative z-1" data-reveal="scale-up">
+        <h2 class="display-4 fw-bold mb-4">Sẵn sàng đưa thương hiệu <br>của bạn <span class="text-gold">lên tầm cao mới?</span></h2>
+        <p class="lead mb-5 opacity-75 mx-auto" style="max-width: 700px;">Hàng nghìn KOL/KOC tài năng đang sẵn sàng cộng tác cùng bạn để tạo nên những chiến dịch đột phá.</p>
+        <div class="d-flex flex-wrap justify-content-center gap-4">
+            <a asp-controller="Auth" asp-action="Register" class="lux-btn-primary bg-gold border-0 px-5 py-3 fs-5">THAM GIA NGAY</a>
+            <a href="#" class="btn btn-outline-light rounded-pill px-5 py-3 fs-5">KẾT NỐI VỚI CHUYÊN GIA</a>
+        </div>
+    </div>
+    <!-- Subtle bg decoration -->
+    <div class="position-absolute top-50 start-50 translate-middle opacity-10" style="font-size: 30rem; pointer-events: none;">
+        <i class="bi bi-asterisk"></i>
+    </div>
+</section>
+
+<!-- SCRIPTS FOR REVEAL ANIMATION -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const revealItems = document.querySelectorAll('[data-reveal]');
+        
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const delay = parseInt(el.getAttribute('data-delay')) || 0;
+                    
+                    setTimeout(() => {
+                        el.classList.add('revealed');
+                    }, delay);
+                    
+                    revealObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.15 });
+
+        revealItems.forEach(el => revealObserver.observe(el));
+    });
+</script>

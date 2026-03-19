@@ -1,0 +1,96 @@
+@model KOL_KOC_TAAA.ViewModels.KolProfileEditViewModel
+@{
+    ViewData["Title"] = "Chỉnh sửa hồ sơ";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a asp-action="Index">Hồ sơ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Chỉnh sửa</li>
+        </ol>
+    </nav>
+    <h2 class="h4 fw-bold">Thiết lập thông tin cá nhân</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="dash-card">
+            <form asp-action="Edit" method="post" class="lux-form">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-4"></div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label asp-for="InfluencerType" class="form-label lux-cap" style="font-size: 0.7rem;">Phân loại Influencer</label>
+                        <select asp-for="InfluencerType" class="form-select lux-input h-auto py-2">
+                            <option value="Nano">Nano Influencer (< 10k)</option>
+                            <option value="Micro">Micro Influencer (10k - 100k)</option>
+                            <option value="Macro">Macro Influencer (100k - 1M)</option>
+                            <option value="Mega">Mega Influencer (> 1M)</option>
+                        </select>
+                        <span asp-validation-for="InfluencerType" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Bio" class="form-label lux-cap" style="font-size: 0.7rem;">Tiểu sử & Giới thiệu</label>
+                    <textarea asp-for="Bio" class="lux-input w-100" rows="5" placeholder="Hãy mô tả phong cách và thế mạnh của bạn..."></textarea>
+                    <span asp-validation-for="Bio" class="text-danger small"></span>
+                    <div class="form-text small opacity-50">Mẹo: Một tiểu sử chuyên nghiệp giúp tăng tỷ lệ booking lên 40%.</div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label asp-for="Gender" class="form-label lux-cap" style="font-size: 0.7rem;">Giới tính</label>
+                        <select asp-for="Gender" class="form-select lux-input h-auto py-2">
+                            <option value="Male">Nam</option>
+                            <option value="Female">Nữ</option>
+                            <option value="Other">Khác</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Dob" class="form-label lux-cap" style="font-size: 0.7rem;">Ngày sinh</label>
+                        <input asp-for="Dob" type="date" class="lux-input w-100" />
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label asp-for="LocationCity" class="form-label lux-cap" style="font-size: 0.7rem;">Thành phố</label>
+                        <input asp-for="LocationCity" class="lux-input w-100" placeholder="VD: Hà Nội" />
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="LocationCountry" class="form-label lux-cap" style="font-size: 0.7rem;">Quốc gia</label>
+                        <input asp-for="LocationCountry" class="lux-input w-100" placeholder="VD: Việt Nam" />
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label asp-for="MinBudget" class="form-label lux-cap" style="font-size: 0.7rem;">Ngân sách tối thiểu (VND)</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">₫</span>
+                        <input asp-for="MinBudget" class="lux-input w-100 border-start-0" placeholder="5,000,000" />
+                    </div>
+                    <div class="form-text small text-muted">Mức ngân sách tối thiểu cho một dự án/chiến dịch.</div>
+                </div>
+
+                <div class="d-flex gap-3 pt-3 border-top">
+                    <button type="submit" class="lux-btn-primary px-5 py-3">
+                        <i class="bi bi-save me-2"></i> Lưu thay đổi
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-dark rounded-pill px-4 d-flex align-items-center">Hủy bỏ</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Column -->
+    <div class="col-lg-4">
+        <div class="dash-card border-0" style="background: rgba(212, 175, 55, 0.05);">
+            <i class="bi bi-lightbulb text-warning fs-3 mb-3 d-block"></i>
+            <h6 class="fw-bold mb-2">Thông tin là sức mạnh</h6>
+            <p class="small text-muted" style="line-height: 1.6;">Để hồ sơ được xuất hiện ở vị trí ưu tiên, bạn nên cung cấp chính xác địa điểm và phân loại của mình. Nhãn hàng thường lọc theo vị trí địa lý để tối ưu chi phí vận hành.</p>
+        </div>
+    </div>
+</div>

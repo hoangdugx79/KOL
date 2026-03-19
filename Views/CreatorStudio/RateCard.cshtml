@@ -1,0 +1,210 @@
+@model List<KOL_KOC_TAAA.Models.RateCard>
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Quản lý Bảng giá - Creator Studio";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index:2000;top:1.5rem!important;">
+        <div class="toast show align-items-center border-0 text-white" style="background:var(--lux-accent-gold);border-radius:12px;" role="alert">
+            <div class="d-flex"><div class="toast-body fw-semibold"><i class="bi bi-check-circle me-2"></i>@TempData["SuccessMessage"]</div></div>
+        </div>
+    </div>
+}
+
+<div class="container py-5">
+    <div class="mb-5" data-reveal="fade-up">
+        <a asp-action="Index" class="lux-link small mb-3 d-inline-block"><i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard</a>
+        <h1 class="lux-h1">Quản lý <span class="text-gradient-gold">Bảng giá</span></h1>
+        <p class="text-muted">Thiết lập các gói dịch vụ và mức giá để thương hiệu dễ dàng đặt lịch hợp tác.</p>
+    </div>
+
+    <!-- Rate Card Sections -->
+    <div class="row g-4" data-reveal="fade-up">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var card in Model)
+            {
+                <div class="col-12">
+                    <div class="lux-surface p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-3 border-bottom">
+                            <div>
+                                <h5 class="lux-h2 mb-0">@card.Title</h5>
+                                <span class="small text-muted">Cập nhật lần cuối: @card.UpdatedAt.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="d-flex gap-2 align-items-center">
+                                <!-- Add Item button → opens modal -->
+                                <button class="lux-btn-outline btn-sm"
+                                        onclick="openAddItemModal('@card.Id', '@card.Title')">
+                                    <i class="bi bi-plus-lg me-1"></i> Thêm hạng mục
+                                </button>
+                                <!-- Delete Rate Card -->
+                                <form asp-action="DeleteRateCard" method="post" class="m-0"
+                                      onsubmit="return confirm('Xóa toàn bộ gói «@card.Title»?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@card.Id">
+                                    <button type="submit" class="btn btn-sm btn-light text-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        @* Notes / Ghi chú *@
+                        <div class="mb-3">
+                            <form asp-action="UpdateRateCardNotes" method="post" class="d-flex gap-2 align-items-start">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@card.Id">
+                                <textarea name="notes" class="lux-input flex-grow-1" rows="2" placeholder="Ghi chú thêm, điều khoản, lưu ý...">@card.Notes</textarea>
+                                <button type="submit" class="lux-btn-outline btn-sm" style="white-space:nowrap;">
+                                    <i class="bi bi-save me-1"></i>Lưu
+                                </button>
+                            </form>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-borderless align-middle mb-0">
+                                <thead class="text-muted small text-uppercase ls-1">
+                                    <tr>
+                                        <th style="width: 40%;">Hạng mục dịch vụ</th>
+                                        <th>Nền tảng</th>
+                                        <th>Thời gian bàn giao</th>
+                                        <th class="text-end">Đơn giá (@card.Currency)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (card.RateCardItems != null && card.RateCardItems.Any())
+                                    {
+                                        foreach (var item in card.RateCardItems)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-bold">@item.ServiceType</div>
+                                                    <div class="small text-muted">@item.Description</div>
+                                                </td>
+                                                <td class="text-muted small">@(item.Platform ?? "—")</td>
+                                                <td>@(item.DurationMinutes.HasValue ? $"{item.DurationMinutes} phút" : "—")</td>
+                                                <td class="text-end fw-bold text-gold">@item.UnitPrice.ToString("N0")</td>
+                                            </tr>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td colspan="4" class="text-center py-4 text-muted small">Chưa có hạng mục nào trong gói này.</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        
+        <!-- Add New Rate Card -->
+        <div class="col-12">
+            <button class="lux-btn-outline w-100 py-4 border-dashed" style="border-style: dashed !important; opacity: 0.6;" data-bs-toggle="modal" data-bs-target="#addRateCardModal">
+                <i class="bi bi-plus-circle fs-3 d-block mb-2"></i>
+                <span>TẠO CẤU TRÚC BẢNG GIÁ MỚI</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Rate Card Item Modal -->
+<div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 lux-surface p-4">
+            <div class="modal-header border-0 p-0 mb-4">
+                <h5 class="lux-h2 mb-0">Thêm <span class="text-gradient-gold">hạng mục</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addItemForm" asp-action="AddRateCardItem" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="rateCardId" id="modalRateCardId">
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="lux-cap mb-1 small d-block">Tên hạng mục *</label>
+                        <input name="ServiceType" class="lux-input w-100" placeholder="VD: Video review, Post ảnh..." required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="lux-cap mb-1 small d-block">Nền tảng</label>
+                        <select name="Platform" class="lux-input w-100">
+                            <option value="">-- Tất cả --</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Khác">Khác</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="lux-cap mb-1 small d-block">Đơn vị</label>
+                        <input name="Unit" class="lux-input w-100" placeholder="Bài / Video / Post" value="Bài">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="lux-cap mb-1 small d-block">Đơn giá (₫) *</label>
+                        <input name="UnitPrice" type="number" min="0" step="1000" class="lux-input w-100" placeholder="500000" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="lux-cap mb-1 small d-block">Thời gian bàn giao (phút)</label>
+                        <input name="DurationMinutes" type="number" min="0" class="lux-input w-100" placeholder="VD: 1440 = 1 ngày">
+                    </div>
+                    <div class="col-12">
+                        <label class="lux-cap mb-1 small d-block">Mô tả</label>
+                        <input name="Description" class="lux-input w-100" placeholder="Mô tả ngắn về hạng mục...">
+                    </div>
+                    <div class="col-12 pt-2">
+                        <button type="submit" class="lux-btn-primary w-100">
+                            <i class="bi bi-plus me-2"></i>Thêm hạng mục
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Rate Card Modal -->
+<div class="modal fade" id="addRateCardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 lux-surface p-4">
+            <div class="modal-header border-0 p-0 mb-4">
+                <h5 class="lux-h2 mb-0">Tạo <span class="text-gradient-gold">Bảng giá</span> mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="CreateRateCard" method="post">
+                @Html.AntiForgeryToken()
+                <div class="mb-3">
+                    <label class="lux-cap mb-2 d-block">Tên bảng giá (e.g. Booking Video)</label>
+                    <input name="Title" class="lux-input w-100" required placeholder="Nhập tên gói...">
+                </div>
+                <div class="mb-3">
+                    <label class="lux-cap mb-2 d-block">Đơn vị tiền tệ</label>
+                    <select name="Currency" class="lux-input w-100">
+                        <option value="VND">Việt Nam Đồng (VND)</option>
+                        <option value="USD">Đô la Mỹ (USD)</option>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label class="lux-cap mb-2 d-block">Ghi chú / Nội dung mô tả</label>
+                    <textarea name="Notes" class="lux-input w-100" rows="3" placeholder="Lưu ý, điều kiện, thông tin thêm..."></textarea>
+                </div>
+                <button type="submit" class="lux-btn-primary w-100">TẠO GÓI DỊCH VỤ</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openAddItemModal(rateCardId, title) {
+    document.getElementById('modalRateCardId').value = rateCardId;
+    document.querySelector('#addItemModal .lux-h2').innerHTML = 'Thêm hạng mục — <span class="text-gradient-gold">' + title + '</span>';
+    new bootstrap.Modal(document.getElementById('addItemModal')).show();
+}
+</script>
+}

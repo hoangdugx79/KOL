@@ -1,0 +1,187 @@
+@model KOL_KOC_TAAA.Models.Booking
+@{
+    ViewData["Title"] = "Chi tiết đơn hàng";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+                    <h5 class="mb-0 fw-bold text-primary">Thông tin đơn hàng #@Model.Id.ToString().Substring(0, 8).ToUpper()</h5>
+                    <span class="badge @(Model.Status == "active_contract" ? "bg-success" : "bg-info") fs-6">@Model.Status</span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-sm-6">
+                            <h6 class="text-muted small text-uppercase">Bên thuê (Brand)</h6>
+                            <p class="fw-bold">@Model.CustomerUser.FullName</p>
+                        </div>
+                        <div class="col-sm-6">
+                            <h6 class="text-muted small text-uppercase">Bên thực hiện (KOL/KOC)</h6>
+                            <p class="fw-bold">@Model.KolUser.User.FullName</p>
+                        </div>
+                    </div>
+
+                    <h6 class="border-bottom pb-2 mb-3">Hạng mục dịch vụ</h6>
+                    <table class="table table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Dịch vụ</th>
+                                <th>Nền tảng</th>
+                                <th class="text-end">Tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.BookingItems)
+                            {
+                                <tr>
+                                    <td>@item.ServiceType</td>
+                                    <td>@item.Platform</td>
+                                    <td class="text-end">@item.LineTotal.ToString("N0") VND</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th colspan="2" class="text-end">Tạm tính:</th>
+                                <td class="text-end">@Model.AgreedSubtotal.ToString("N0") VND</td>
+                            </tr>
+                            <tr>
+                                <th colspan="2" class="text-end">Phí nền tảng (10%):</th>
+                                <td class="text-end">@Model.PlatformFee.ToString("N0") VND</td>
+                            </tr>
+                            <tr class="table-primary fw-bold">
+                                <th colspan="2" class="text-end">Tổng cộng:</th>
+                                <td class="text-end">@Model.TotalAmount.ToString("N0") VND</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Deliverables Section -->
+            <div class="card shadow-sm border-info mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Sản phẩm bàn giao (Deliverables)</h5>
+                </div>
+                <div class="card-body">
+                    @if (!Model.Deliverables.Any())
+                    {
+                        <p class="text-muted text-center py-3">Chưa có sản phẩm nào được nộp.</p>
+                        if (User.IsInRole("KOL") && Model.Status == "active_contract")
+                        {
+                            <div class="text-center">
+                                <a asp-controller="Deliverable" asp-action="Submit" asp-route-bookingId="@Model.Id" class="btn btn-outline-info">Nộp sản phẩm mới</a>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <ul class="list-group list-group-flush">
+                            @foreach (var d in Model.Deliverables)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>@d.Title</strong>
+                                        <br/><small class="text-muted">Nộp lúc: @d.SubmittedAt?.ToString("dd/MM/yyyy")</small>
+                                    </div>
+                                    <div class="text-end">
+                                        @if (User.IsInRole("Customer") && d.Status == "Submitted")
+                                        {
+                                            <form asp-controller="Deliverable" asp-action="Approve" method="post" style="display:inline;">
+                                                <input type="hidden" name="id" value="@d.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success">Duyệt</button>
+                                            </form>
+                                        }
+                                        <span class="badge @(d.Status == "Approved" ? "bg-success" : "bg-warning")">@d.Status</span>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Action Hub Sidebar -->
+            <div class="card shadow-sm border-dark mb-4">
+                <div class="card-header bg-dark text-white text-center">
+                    <h6 class="mb-0 uppercase">Tiến độ công việc</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <label class="small text-muted d-block">Bước 1: Hợp đồng</label>
+                        @if (Model.Contracts.Any())
+                        {
+                            var latestContract = Model.Contracts.OrderByDescending(c => c.Version).First();
+                            <a asp-controller="Contract" asp-action="Details" asp-route-id="@latestContract.Id" class="btn btn-sm btn-outline-dark w-100">
+                                Xem Hợp đồng (@latestContract.Status)
+                            </a>
+                        }
+                        else if (User.IsInRole("KOL"))
+                        {
+                            <a asp-controller="Contract" asp-action="Draft" asp-route-bookingId="@Model.Id" class="btn btn-sm btn-dark w-100">
+                                Soạn thảo Hợp đồng
+                            </a>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary w-100">Chờ KOL soạn hợp đồng</span>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="small text-muted d-block">Bước 2: Thanh toán</label>
+                        @if (Model.Status == "awaiting_signature" || Model.Status == "active_contract")
+                        {
+                            @if (User.IsInRole("Customer"))
+                            {
+                                <a asp-controller="Payment" asp-action="Checkout" asp-route-bookingId="@Model.Id" class="btn btn-sm btn-success w-100 fw-bold">Thanh toán ngay</a>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary w-100 py-2">Chờ Brand thanh toán</span>
+                            }
+                        }
+                        else if (Model.Status == "Paid" || Model.Status == "Completed")
+                        {
+                            <span class="badge bg-success w-100 py-2"><i class="bi bi-check-circle"></i> Đã thanh toán</span>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-outline-secondary w-100 disabled">Chờ ký hợp đồng</button>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="small text-muted d-block">Bước 3: Thực hiện & Bàn giao</label>
+                        @if (Model.Status == "Completed")
+                        {
+                            <span class="badge bg-success w-100 py-2 mb-2">Đã hoàn thành</span>
+                            @if (User.IsInRole("Customer"))
+                            {
+                                <a asp-controller="Review" asp-action="Submit" asp-route-bookingId="@Model.Id" class="btn btn-warning btn-sm w-100 fw-bold">Đánh giá ngay</a>
+                            }
+                        }
+                        else
+                        {
+                           <button class="btn btn-sm btn-outline-secondary w-100 disabled">Chờ thanh toán</button>
+                        }
+                    </div>
+
+                    <hr>
+                    <a asp-controller="Chat" asp-action="StartWithBooking" asp-route-bookingId="@Model.BookingRequestId" class="btn btn-primary w-100">
+                        <i class="bi bi-chat-dots"></i> Nhắn tin trao đổi
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notes or History -->
+            <div class="alert alert-warning py-2 small">
+                <strong>Lưu ý:</strong> Mọi thanh toán và trao đổi sản phẩm nên được thực hiện trên hệ thống để được bảo vệ quyền lợi.
+            </div>
+        </div>
+    </div>
+</div>

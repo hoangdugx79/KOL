@@ -1,0 +1,124 @@
+@model List<KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel>
+
+<section class="lux-recommended py-5">
+    <div class="container py-5">
+        <div class="row mb-5 align-items-end">
+            <div class="col-lg-6" data-reveal="fade-right">
+                <h6 class="text-uppercase fw-bold text-muted small ls-2 mb-2">Dành riêng cho bạn</h6>
+                <h2 class="lux-h2 display-5">Khám phá <span class="text-indigo">tài năng phù hợp</span></h2>
+            </div>
+            <div class="col-lg-6 text-lg-end" data-reveal="fade-left">
+                <div class="d-flex flex-wrap justify-content-lg-end gap-2">
+                    <button class="lux-chip active">Tất cả</button>
+                    <button class="lux-chip">Làm đẹp</button>
+                    <button class="lux-chip">Công nghệ</button>
+                    <button class="lux-chip">Lifestyle</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var kol = Model[i];
+                var isFeatured = i == 0 || i == 7; // Làm cho một số card to hơn (Bento Rhythm)
+                
+                <div class="@(isFeatured ? "col-lg-6" : "col-lg-3 col-md-6")" data-reveal="fade-up" data-delay="@(i * 50)">
+                    <a href="@Url.Action("KolDetail", "Home", new { id = kol.UserId })" class="text-decoration-none">
+                        <div class="kol-card-bento @(isFeatured ? "featured-bento" : "") h-100 position-relative overflow-hidden shadow-sm border">
+                            <div class="kol-img-wrap position-relative">
+                                <img src="@(kol.AvatarUrl ?? "https://i.pravatar.cc/400?u=" + kol.UserId)" alt="@kol.FullName" class="w-100 object-fit-cover @(isFeatured ? "h-featured" : "h-normal")">
+                                <div class="kol-overlay"></div>
+                                <div class="card-actions-overlay">
+                                    <a href="@Url.Action("StartWithKol", "Chat", new { kolId = kol.UserId })" class="quick-chat-btn" title="Nhắn tin nhanh">
+                                        <i class="bi bi-chat-text-fill"></i>
+                                    </a>
+                                </div>
+                                @if (kol.IsVerified)
+                                {
+                                    <div class="verif-badge"><i class="bi bi-patch-check-fill"></i></div>
+                                }
+                            </div>
+                            
+                            <div class="kol-content p-4">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h4 class="fw-bold mb-0 @(isFeatured ? "fs-3" : "fs-5") text-dark">@kol.FullName</h4>
+                                        <div class="text-muted small">@kol.Category | @kol.InfluencerType</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fw-bold text-indigo">@(kol.RatingAvg) <i class="bi bi-star-fill text-gold small"></i></div>
+                                        <div class="text-muted small">@kol.RatingCount reviews</div>
+                                    </div>
+                                </div>
+                                
+                                @if (isFeatured)
+                                {
+                                    <p class="text-muted small mb-3 line-clamp-2">@kol.Bio</p>
+                                }
+
+                                <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top border-light">
+                                    <div class="small fw-bold">
+                                        <i class="bi bi-people-fill me-1 opacity-50"></i> @(kol.TotalFollowers?.ToString("N0") ?? "0")
+                                    </div>
+                                    @if (kol.MinBudget > 0)
+                                    {
+                                        <div class="text-gold fw-bold small">Từ @(kol.MinBudget?.ToString("N0"))đ</div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+        
+        <div class="text-center mt-5" data-reveal="fade-up">
+            <a href="/Home/Search" class="lux-btn-outline px-5">KHÁM PHÁ THÊM TÀI NĂNG</a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .h-normal { height: 240px; }
+    .h-featured { height: 350px; }
+    .featured-bento { background: #fff; }
+    .featured-bento:hover { transform: scale(1.01) !important; }
+    .verif-badge { position: absolute; top: 15px; right: 15px; color: var(--lux-accent-gold); font-size: 1.5rem; z-index: 2; }
+    .kol-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.02)); }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .card-actions-overlay {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .kol-card-bento:hover .card-actions-overlay {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .quick-chat-btn {
+        width: 40px;
+        height: 40px;
+        background: var(--lux-primary-indigo);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        transition: all 0.2s ease;
+    }
+
+    .quick-chat-btn:hover {
+        background: var(--lux-accent-gold);
+        color: #fff;
+        transform: scale(1.1);
+    }
+</style>

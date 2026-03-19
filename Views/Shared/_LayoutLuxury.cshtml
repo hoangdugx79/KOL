@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Luxury KOL Marketplace</title>
+    
+    <!-- Core CSS & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- MỚI: Hệ thống Design Luxury -->
+    <link rel="stylesheet" href="~/css/luxury-bento.css" asp-append-version="true" />
+</head>
+<body class="luxury-mode">
+    
+    <!-- Render Header Cấp Cao -->
+    @await Html.PartialAsync("_LuxuryHeader")
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- Render Footer Trầm Ấm -->
+    @await Html.PartialAsync("_LuxuryFooter")
+
+    <!-- Core Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    
+    <!-- Gắn sự kiện scroll nhỏ cho Header -->
+    <script>
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 10) {
+                $('.lux-header').addClass('scrolled');
+            } else {
+                $('.lux-header').removeClass('scrolled');
+            }
+        });
+    </script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script> 
+        document.addEventListener('DOMContentLoaded', function () { 
+            document.querySelectorAll('[data-reveal]').forEach(function (el) { el.classList.add('revealed'); }); 
+        }); 
+    </script>
+
+    <!-- AI Chatbot Widget -->
+    <div class="ai-chat-widget">
+        <div class="ai-chat-window" id="aiChatWindow">
+            <div class="ai-chat-header">
+                <div>
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-robot me-2"></i>KOL AI Assistant</h6>
+                    <small class="opacity-75">Sẵn sàng hỗ trợ bạn 24/7</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" onclick="toggleChat()"></button>
+            </div>
+            <div class="ai-chat-body" id="aiChatBody">
+                <div class="chat-message ai">
+                    Chào bạn! Tôi là trợ lý AI của KOL Market. Tôi có thể giúp gì cho bạn hôm nay?
+                </div>
+            </div>
+            <div class="ai-typing" id="aiTyping">AI đang suy nghĩ...</div>
+            <div class="ai-chat-footer">
+                <div class="chat-input-group">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Nhập câu hỏi..." onkeypress="if(event.which===13)sendMessage()">
+                    <button class="btn btn-primary btn-sm rounded-circle" onclick="sendMessage()"><i class="bi bi-send-fill"></i></button>
+                </div>
+            </div>
+        </div>
+        <button class="ai-chat-button" onclick="toggleChat()" title="Hỏi trợ lý AI">
+            <i class="bi bi-chat-dots-fill"></i>
+        </button>
+    </div>
+
+    <script>
+        function toggleChat() {
+            var win = document.getElementById('aiChatWindow');
+            if (win.style.display === 'flex') {
+                win.style.display = 'none';
+            } else {
+                win.style.display = 'flex';
+            }
+        }
+
+        function sendMessage() {
+            var input = document.getElementById('chatInput');
+            var message = input.value.trim();
+            if (!message) return;
+
+            appendMessage('user', message);
+            input.value = '';
+            document.getElementById('aiTyping').style.display = 'block';
+
+            fetch('/api/AiAssistant/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: message })
+            })
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                document.getElementById('aiTyping').style.display = 'none';
+                appendMessage('ai', data.response || 'Xin lỗi, đã có lỗi xảy ra.');
+            })
+            .catch(function() {
+                document.getElementById('aiTyping').style.display = 'none';
+                appendMessage('ai', 'Xin lỗi, đã có lỗi xảy ra khi kết nối với AI.');
+            });
+        }
+
+        function appendMessage(role, text) {
+            var chatBody = document.getElementById('aiChatBody');
+            var div = document.createElement('div');
+            div.className = 'chat-message ' + role;
+            if (role === 'ai') {
+                div.innerHTML = renderMarkdown(text);
+            } else {
+                div.textContent = text;
+            }
+            chatBody.appendChild(div);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function renderMarkdown(md) {
+            var html = md
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/^### (.+)$/gm, '<strong style="font-size:1.05em;display:block;margin:0.6em 0 0.3em;">$1</strong>')
+                .replace(/^## (.+)$/gm, '<strong style="font-size:1.1em;display:block;margin:0.6em 0 0.3em;">$1</strong>')
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                .replace(/^\d+\.\s+(.+)$/gm, '<li style="margin-left:1.2em;list-style:decimal;">$1</li>')
+                .replace(/^[-•]\s+(.+)$/gm, '<li style="margin-left:1.2em;list-style:disc;">$1</li>')
+                .replace(/\n{2,}/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+            return html;
+        }
+    </script>
+</body>
+</html>

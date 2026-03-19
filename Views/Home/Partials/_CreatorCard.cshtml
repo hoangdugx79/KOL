@@ -1,0 +1,62 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+
+<div class="lux-bento-item lux-card-compact border-0 lux-hover-lift">
+    <!-- Image Area (42% Height) -->
+    <div class="lux-card-img-40 lux-hover-zoom">
+        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+        {
+            <img src="@Model.AvatarUrl" alt="@Model.FullName" class="w-100 h-100 object-fit-cover" loading="lazy">
+        }
+        else
+        {
+            <div class="lux-monogram w-100 h-100 fs-2">
+                @(Model.FullName?.Substring(0, 1) ?? "K")
+            </div>
+        }
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.1) 100%);"></div>
+        
+        <!-- Verified Badge -->
+        <div class="position-absolute top-0 end-0 p-3">
+             <i class="bi bi-patch-check-fill shadow-sm" style="color: var(--lux-accent-gold); font-size: 1.1rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));"></i>
+        </div>
+    </div>
+
+    <!-- Info Area (58% Height) -->
+    <div class="lux-card-info-60 d-flex flex-column">
+        <div class="d-flex justify-content-between align-items-start mb-1">
+            <span class="lux-cap" style="font-size: 0.6rem;">@Model.Category</span>
+            <div class="d-flex gap-1 opacity-75">
+                @if (Model.Platforms?.Any(p => p.ToLower().Contains("tiktok")) == true) { <i class="bi bi-tiktok small"></i> }
+                @if (Model.Platforms?.Any(p => p.ToLower().Contains("instagram")) == true) { <i class="bi bi-instagram small"></i> }
+            </div>
+        </div>
+
+        <h4 class="lux-h2 fs-5 mb-1 text-truncate">@Model.FullName</h4>
+        <div class="text-muted small mb-2">Verified Professional</div>
+
+        <!-- Metrics Grid (Minimalist) -->
+        <div class="d-flex gap-3 mb-2">
+            <div>
+                <span class="text-muted border-end pe-2 me-0" style="font-size: 0.7rem;">Followers</span>
+                <span class="fw-bold ms-1" style="font-size: 0.85rem;">@((Model.TotalFollowers ?? 0).ToString("N0"))</span>
+            </div>
+            <div>
+                <span class="text-muted border-end pe-2 me-0" style="font-size: 0.7rem;">Budget</span>
+                <span class="fw-bold ms-1" style="font-size: 0.85rem;">5tr+</span>
+            </div>
+        </div>
+
+        <!-- Insight Line -->
+        <div class="lux-insight-line mb-4">
+            Phù hợp chiến dịch Awareness & Gen Z.
+        </div>
+
+        <!-- CTA Area -->
+        <div class="mt-auto pt-3 border-top d-flex gap-2">
+            <a asp-action="KolDetail" asp-route-id="@Model.UserId" class="lux-btn-outline flex-grow-1 px-0 py-2 text-center" style="font-size: 0.8rem;">Xem Hồ Sơ</a>
+            <button class="btn btn-light d-flex align-items-center justify-content-center p-0" style="width: 36px; height: 36px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                <i class="bi bi-bookmark text-muted" style="font-size: 0.9rem;"></i>
+            </button>
+        </div>
+    </div>
+</div>

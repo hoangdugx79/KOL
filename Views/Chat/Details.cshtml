@@ -1,0 +1,61 @@
+@model KOL_KOC_TAAA.ViewModels.ChatDetailsViewModel
+@{
+    ViewData["Title"] = $"Chat với {Model.OtherUserName}";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow-sm" style="height: 80vh; display: flex; flex-direction: column;">
+                <!-- Chat Header -->
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center p-3">
+                    <div class="d-flex align-items-center">
+                        <a asp-action="Index" class="btn btn-sm btn-outline-secondary me-3"><i class="bi bi-arrow-left"></i></a>
+                        <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.OtherUserName)&background=random&size=40" class="rounded-circle me-2" alt="Avatar">
+                        <h5 class="mb-0">@Model.OtherUserName</h5>
+                    </div>
+                    @if (Model.BookingRequestId != null)
+                    {
+                        <span class="badge bg-info text-dark">Về Booking này</span>
+                    }
+                </div>
+
+                <!-- Chat Messages Body -->
+                <div class="card-body p-4 overflow-auto bg-light" id="chat-body" style="flex-grow: 1;">
+                    @foreach (var msg in Model.Messages)
+                    {
+                        <div class="d-flex mb-3 @(msg.IsMe ? "justify-content-end" : "justify-content-start")">
+                            <div class="p-3 rounded-3 @(msg.IsMe ? "bg-primary text-white" : "bg-white border")" style="max-width: 70%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                                <div class="small fw-bold mb-1">@(msg.IsMe ? "Bạn" : msg.SenderName)</div>
+                                <div class="message-content">@msg.Content</div>
+                                <div class="text-end mt-1" style="font-size: 0.7rem; opacity: 0.8;">
+                                    @msg.SentAt.ToLocalTime().ToString("HH:mm")
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Chat Input Footer -->
+                <div class="card-footer bg-white border-top p-3">
+                    <form asp-action="SendMessage" method="post" class="d-flex">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="ConversationId" />
+                        <input asp-for="NewMessage" class="form-control me-2" placeholder="Nhập tin nhắn..." autocomplete="off" required />
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-send"></i> Gửi</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-scroll to bottom
+        window.onload = function() {
+            var chatBody = document.getElementById('chat-body');
+            chatBody.scrollTop = chatBody.scrollHeight;
+        };
+    </script>
+}

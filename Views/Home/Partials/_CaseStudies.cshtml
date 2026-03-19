@@ -1,0 +1,85 @@
+@model List<KOL_KOC_TAAA.ViewModels.CaseStudyViewModel>
+
+<section class="lux-case-studies py-5 bg-white">
+    <div class="container py-5">
+        <div class="row mb-5 align-items-end">
+            <div class="col-lg-6" data-reveal="fade-right">
+                <h6 class="text-uppercase fw-bold text-muted small ls-2 mb-2">Thành công thực tế</h6>
+                <h2 class="lux-h2 display-5">Kết quả mang tầm <span class="text-gradient-gold">ảnh hưởng thật</span></h2>
+            </div>
+            <div class="col-lg-5 offset-lg-1" data-reveal="fade-left">
+                <p class="text-muted lead fs-6">Chúng tôi không chỉ kết nối, chúng tôi tạo ra sự tăng trưởng. Khám phá cách các thương hiệu đã đạt được KPI vượt mong đợi.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var cs in Model)
+            {
+                <div class="col-lg-6" data-reveal="fade-up">
+                    <div class="case-card bento-card p-0 overflow-hidden">
+                        <div class="row g-0 h-100">
+                            <div class="col-md-5">
+                                <div class="case-img-wrap h-100">
+                                    <div class="case-result-badge">@cs.ResultHighlight</div>
+                                    <img src="https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=600" alt="@cs.BrandName" class="w-100 h-100 object-fit-cover">
+                                </div>
+                            </div>
+                            <div class="col-md-7 p-4 p-xl-5 d-flex flex-column justify-content-center">
+                                <div class="brand-tag mb-2">@cs.BrandName</div>
+                                <h4 class="fw-bold mb-3">@cs.CampaignGoal</h4>
+                                <p class="text-muted small mb-4">@cs.Description</p>
+                                <a href="#" class="btn-text-gold">Xem chi tiết Case Study <i class="bi bi-chevron-right"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    .case-card {
+        border-radius: 24px;
+        border: 1px solid var(--lux-border-thick);
+        transition: all 0.4s ease;
+        height: 100%;
+        background: var(--lux-bg-stone);
+    }
+    .case-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+    }
+    .case-result-badge {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: var(--lux-primary-indigo);
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-weight: 700;
+        font-size: 0.7rem;
+        z-index: 2;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+    .brand-tag {
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--lux-accent-gold);
+    }
+    .btn-text-gold {
+        color: var(--lux-accent-gold);
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .btn-text-gold:hover {
+        gap: 10px;
+    }
+</style>

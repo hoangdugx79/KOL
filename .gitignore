@@ -1,0 +1,50 @@
+# Build artifacts
+bin/
+obj/
+out/
+publish/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# IDE folders
+.vs/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Local databases and temporary DB files
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+
+# Runtime and temp files
+*.tmp
+*.temp
+*.cache
+
+# Uploaded/generated content
+wwwroot/uploads/
+
+# Secrets and environment config
+appsettings.Production.json
+appsettings.Development.json
+.env
+.env.*
+secrets.json
+
+# Local deploy scripts/secrets
+deploy.local.sh

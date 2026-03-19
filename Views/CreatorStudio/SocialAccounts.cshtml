@@ -1,0 +1,87 @@
+@model List<KOL_KOC_TAAA.Models.KolSocialAccount>
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Liên kết mạng xã hội - Creator Studio";
+}
+
+<div class="container py-5">
+    <div class="mb-5" data-reveal="fade-up">
+        <a asp-action="Index" class="lux-link small mb-3 d-inline-block"><i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard</a>
+        <h1 class="lux-h1">Liên kết <span class="text-gradient-gold">Mạng xã hội</span></h1>
+        <p class="text-muted">Kết nối các nền tảng của bạn để chứng minh số lượng người theo dõi và độ phủ sóng.</p>
+    </div>
+
+    <!-- Linked Accounts List -->
+    <div class="row g-4 mb-5" data-reveal="fade-up">
+        @foreach (var platform in new[] { "TikTok", "Instagram", "YouTube", "Facebook" })
+        {
+            var account = Model?.FirstOrDefault(a => a.Platform.Equals(platform, StringComparison.OrdinalIgnoreCase));
+            <div class="col-md-6 col-lg-3">
+                <div class="lux-surface p-4 h-100 d-flex flex-column align-items-center text-center">
+                    <div class="fs-1 mb-3 @(account != null ? "text-dark" : "text-muted opacity-25")">
+                        <i class="bi bi-@platform.ToLower()"></i>
+                    </div>
+                    <h6 class="fw-bold mb-1">@platform</h6>
+                    
+                    @if (account != null)
+                    {
+                        <div class="text-gold fw-bold mb-3">@((account.Followers ?? 0).ToString("N0")) <span class="small fw-normal text-muted">Followers</span></div>
+                        <div class="mt-auto w-100 pt-3 border-top">
+                            <a href="@account.ProfileUrl" target="_blank" class="lux-link small d-block mb-2">Xem trang cá nhân</a>
+                            <form asp-action="RemoveSocialAccount" method="post" onsubmit="return confirm('Hủy liên kết tài khoản này?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@account.Id" />
+                                <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none">Hủy liên kết</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="small text-muted mb-4">Chưa liên kết</p>
+                        <button class="lux-btn-outline w-100 mt-auto" data-bs-toggle="modal" data-bs-target="#addSocialModal" data-platform="@platform">LIÊN KẾT NGAY</button>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Social Modal -->
+<div class="modal fade" id="addSocialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 lux-surface p-4">
+            <div class="modal-header border-0 p-0 mb-4">
+                <h5 class="lux-h2 mb-0">Liên kết <span id="modalPlatformName" class="text-gradient-gold"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="AddSocialAccount" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Platform" id="modalPlatformInput" />
+                <div class="mb-3">
+                    <label class="lux-cap mb-2 d-block">Đường dẫn trang cá nhân (URL)</label>
+                    <input name="Url" class="lux-input w-100" required placeholder="https://...">
+                </div>
+                <div class="mb-4">
+                    <label class="lux-cap mb-2 d-block">Số lượng người theo dõi</label>
+                    <input name="FollowersCount" type="number" class="lux-input w-100" required placeholder="e.g. 50000">
+                </div>
+                <button type="submit" class="lux-btn-primary w-100">XÁC NHẬN LIÊN KẾT</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var addSocialModal = document.getElementById('addSocialModal')
+        addSocialModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget
+            var platform = button.getAttribute('data-platform')
+            var modalTitle = addSocialModal.querySelector('#modalPlatformName')
+            var modalInput = addSocialModal.querySelector('#modalPlatformInput')
+
+            modalTitle.textContent = platform
+            modalInput.value = platform
+        })
+    </script>
+}

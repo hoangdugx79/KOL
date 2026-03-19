@@ -1,0 +1,61 @@
+@model IEnumerable<KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel>
+
+<section class="lux-recommended-section py-5 mt-5">
+    <div class="container">
+        <!-- Section Header -->
+        <div class="d-flex justify-content-between align-items-end mb-5">
+            <div>
+                <div class="lux-cap mb-2">Curated for you</div>
+                <h2 class="display-6 fw-bold lux-h1 mb-3" style="letter-spacing: -1.5px;">Đề Xuất Hành Trình <span style="font-family: serif; font-style: italic; font-weight: 400;">Sáng Tạo</span>.</h2>
+                <p class="lux-body-text mb-0 fs-6">
+                    <i class="bi bi-stars text-warning me-2"></i> Trí tuệ nhân tạo đã chọn lọc những gương mặt phù hợp nhất với tiêu chuẩn thương hiệu của bạn.
+                </p>
+            </div>
+            <div class="d-none d-md-block">
+                <a asp-action="Search" class=" lux-btn-outline rounded-pill px-5 border-0" style="background: var(--lux-bg-stone); font-size: 0.85rem;">
+                    Xem tất cả tài năng <i class="bi bi-arrow-right ms-2"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Bento Rhythm Grid -->
+        @if (Model != null && Model.Any())
+        {
+            <div class="lux-bento-grid-refined">
+                @{
+                    var kolList = Model.ToList();
+                    int count = 0;
+                }
+                
+                @for (int i = 0; i < kolList.Count && i < 8; i++)
+                {
+                    var kol = kolList[i];
+                    
+                    if (i == 0) // The first one is a Featured Card (Spans 2x2)
+                    {
+                        @await Html.PartialAsync("Partials/_FeaturedCreatorCard", kol)
+                    }
+                    else // The others are Regular Cards
+                    {
+                        @await Html.PartialAsync("Partials/_CreatorCard", kol)
+                    }
+                }
+            </div>
+            
+            <!-- Mobile "View All" button -->
+            <div class="d-md-none mt-4 text-center">
+                <a asp-action="Search" class="lux-btn-outline w-100 py-3 d-block">Xem tất cả tài năng</a>
+            </div>
+        }
+        else
+        {
+            <div class="lux-surface py-5 text-center border-dashed">
+                <p class="text-muted my-5">Đang tinh lọc dữ liệu đề xuất...</p>
+            </div>
+        }
+    </div>
+</section>
+
+<style>
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: var(--lux-border-thick) !important; }
+</style>

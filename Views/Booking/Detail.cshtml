@@ -1,0 +1,437 @@
+@model KOL_KOC_TAAA.ViewModels.BookingDetailViewModel
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = $"Đơn hàng #{Model.Booking.Id.ToString()[..8].ToUpper()} - KOL Market";
+
+    // Status helpers
+    var status = Model.Booking.Status;
+    var isKol = Model.Role == "KOL";
+    var isCustomer = Model.Role == "Customer";
+    
+    string StatusLabel(string s) => s switch {
+        "in_progress" => "Đang thực hiện",
+        "contract_signed" => "Đã ký hợp đồng",
+        "work_submitted" => "Đã nộp sản phẩm",
+        "approved" => "Đã nghiệm thu",
+        "paid" => "Đã thanh toán",
+        "completed" => "Hoàn tất",
+        _ => s.ToUpper()
+    };
+    
+    string StatusColor(string s) => s switch {
+        "in_progress" => "bg-primary",
+        "contract_signed" => "bg-info",
+        "work_submitted" => "bg-warning text-dark",
+        "approved" => "bg-success",
+        "paid" or "completed" => "bg-dark",
+        _ => "bg-secondary"
+    };
+
+    // Progress steps
+    var steps = new[] {
+        ("bi-play-circle", "Khởi tạo", true),
+        ("bi-pen", "Hợp đồng", Model.IsContractSigned),
+        ("bi-cloud-upload", "Nộp bài", Model.HasDeliverablesSubmitted),
+        ("bi-check2-circle", "Nghiệm thu", Model.IsApproved),
+        ("bi-credit-card", "Thanh toán", Model.IsPaymentReceived),
+    };
+}
+
+<div class="container py-5">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="mb-5" data-reveal="fade-up">
+        <a asp-action="Index" class="lux-link small mb-3 d-inline-block"><i class="bi bi-arrow-left me-1"></i> Quay lại danh sách</a>
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="lux-h1 mb-1">Chi tiết <span class="text-gradient-gold">Hợp tác</span></h1>
+                <p class="text-muted mb-0">Mã đơn: <strong>#@Model.Booking.Id.ToString()[..8].ToUpper()</strong></p>
+            </div>
+            <span class="badge @StatusColor(status) px-3 py-2 fs-6">@StatusLabel(status)</span>
+        </div>
+    </div>
+
+    <!-- ===== PROGRESS BAR ===== -->
+    <div class="lux-surface p-4 mb-5" data-reveal="fade-up">
+        <div class="row text-center position-relative">
+            @foreach (var (icon, label, active) in steps)
+            {
+                <div class="col">
+                    <div class="progress-step @(active ? "active" : "")">
+                        <div class="step-icon"><i class="bi @icon"></i></div>
+                        <div class="small mt-2 fw-bold">@label</div>
+                    </div>
+                </div>
+            }
+            <div class="step-connector"></div>
+        </div>
+    </div>
+
+    <div class="row g-5">
+        <!-- ===== LEFT COLUMN ===== -->
+        <div class="col-lg-8" data-reveal="fade-right">
+            <!-- Campaign Details -->
+            <div class="lux-surface p-4 mb-4">
+                <h5 class="lux-h2 mb-4 pb-2 border-bottom">Thông tin Chiến dịch</h5>
+                <h6 class="fw-bold fs-5 mb-3">@Model.Booking.BookingRequest.Title</h6>
+                <div class="bg-light p-3 rounded mb-4">
+                    <label class="lux-cap small mb-1">Mô tả Brief</label>
+                    <p class="mb-0 text-muted">@Model.Booking.BookingRequest.Brief</p>
+                </div>
+                
+                @if (Model.Booking.BookingRequest?.ProposedStartDate != null && Model.Booking.BookingRequest?.ProposedEndDate != null)
+                {
+                    <div class="row mb-4 bg-light p-3 rounded mx-0">
+                        <div class="col-6 border-end">
+                            <label class="lux-cap small mb-2 text-muted"><i class="bi bi-calendar-event me-2"></i>Ngày bắt đầu</label>
+                            <div class="fw-bold fs-6">@Model.Booking.BookingRequest.ProposedStartDate.Value.ToString("dd/MM/yyyy")</div>
+                        </div>
+                        <div class="col-6 ps-4">
+                            <label class="lux-cap small mb-2 text-muted"><i class="bi bi-calendar-check me-2"></i>Ngày kết thúc</label>
+                            <div class="fw-bold fs-6">@Model.Booking.BookingRequest.ProposedEndDate.Value.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    </div>
+                }
+                
+                <table class="table table-borderless align-middle mb-0">
+                    <thead class="text-muted small text-uppercase ls-1">
+                        <tr>
+                            <th>Hạng mục dịch vụ</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Đơn giá</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Booking.BookingItems)
+                        {
+                            <tr>
+                                <td class="py-3"><div class="fw-bold">@item.ServiceType</div></td>
+                                <td class="text-center">@item.Quantity</td>
+                                <td class="text-end fw-bold text-gold">@item.UnitPrice.ToString("N0") @Model.Booking.Currency</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="border-top">
+                        <tr>
+                            <td colspan="2" class="pt-3 fw-bold">TỔNG CỘNG</td>
+                            <td class="pt-3 text-end fw-bold fs-5 text-gradient-gold">@Model.Booking.TotalAmount.ToString("N0") @Model.Booking.Currency</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <!-- ===== ACTION PANEL ===== -->
+            <div class="lux-surface p-4 border-gold" style="border-width: 2px !important;">
+                <h5 class="lux-h2 mb-4"><i class="bi bi-lightning-charge me-2"></i>Hành động cần thiết</h5>
+                
+                @* === BƯỚC 1: Hợp đồng (in_progress + chưa ký) === *@
+                @if (status == "in_progress" && !Model.IsContractSigned)
+                {
+                    <div class="action-card">
+                        <div class="action-info">
+                            <div class="action-step-badge">Bước 1</div>
+                            <p class="mb-1 fw-bold">Tạo & Ký hợp đồng điện tử</p>
+                            <span class="small text-muted">Hai bên cần ký hợp đồng trước khi bắt đầu thực hiện công việc.</span>
+                        </div>
+                        <div class="action-buttons">
+                            @if (!Model.Booking.Contracts.Any())
+                            {
+                                <a asp-controller="Contract" asp-action="CreateDraft" asp-route-bookingId="@Model.Booking.Id"
+                                   class="lux-btn-primary">
+                                    <i class="bi bi-file-earmark-plus me-1"></i>TẠO HỢP ĐỒNG
+                                </a>
+                            }
+                            else
+                            {
+                                var latestContract = Model.Booking.Contracts.OrderByDescending(c => c.CreatedAt).First();
+                                <a asp-controller="Contract" asp-action="Details" asp-route-id="@latestContract.Id"
+                                   class="lux-btn-primary">
+                                    <i class="bi bi-pen me-1"></i>XEM & KÝ HỢP ĐỒNG
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                @* === BƯỚC 2: Nộp sản phẩm (đã ký HĐ / đang thực hiện, chưa nộp) === *@
+                else if (isKol && (status == "contract_signed" || (status == "in_progress" && Model.IsContractSigned)) && !Model.HasDeliverablesSubmitted)
+                {
+                    <div class="action-card">
+                        <div class="action-info">
+                            <div class="action-step-badge">Bước 2</div>
+                            <p class="mb-1 fw-bold">Nộp sản phẩm sáng tạo</p>
+                            <span class="small text-muted">Gửi link bài viết hoặc nội dung để Brand duyệt bài.</span>
+                        </div>
+                        <div class="action-buttons">
+                            <a asp-controller="Deliverables" asp-action="Manage" asp-route-bookingId="@Model.Booking.Id"
+                               class="lux-btn-primary">
+                                <i class="bi bi-cloud-upload me-1"></i>NỘP SẢN PHẨM
+                            </a>
+                        </div>
+                    </div>
+                }
+                @* === BƯỚC 3: Nghiệm thu (Customer, đã nộp bài) === *@
+                else if (isCustomer && status == "work_submitted")
+                {
+                    <div class="action-card">
+                        <div class="action-info">
+                            <div class="action-step-badge">Bước 3</div>
+                            <p class="mb-1 fw-bold">Nghiệm thu sản phẩm</p>
+                            <span class="small text-muted">Kiểm tra sản phẩm KOL đã nộp. Nếu đạt yêu cầu, bấm nghiệm thu.</span>
+                        </div>
+                        <div class="action-buttons">
+                            <a asp-controller="Deliverables" asp-action="Manage" asp-route-bookingId="@Model.Booking.Id"
+                               class="lux-btn-outline me-2">
+                                <i class="bi bi-eye me-1"></i>XEM SẢN PHẨM
+                            </a>
+                            <form asp-controller="Deliverables" asp-action="Approve" method="post" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="bookingId" value="@Model.Booking.Id" />
+                                <button type="submit" class="lux-btn-primary"
+                                        onclick="return confirm('Xác nhận nghiệm thu? Sau bước này bạn sẽ cần thanh toán.')">
+                                    <i class="bi bi-check2-circle me-1"></i>NGHIỆM THU
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                @* === BƯỚC 4: Thanh toán (Customer, đã nghiệm thu) === *@
+                else if (isCustomer && status == "approved")
+                {
+                    <div class="action-card action-card-highlight">
+                        <div class="action-info">
+                            <div class="action-step-badge bg-warning text-dark">Bước cuối</div>
+                            <p class="mb-1 fw-bold">Thanh toán để hoàn tất đơn hàng</p>
+                            <span class="small text-muted">Sản phẩm đã nghiệm thu. Thanh toán để giải ngân cho KOL và hoàn tất hợp tác.</span>
+                        </div>
+                        <div class="action-buttons">
+                            <a asp-action="Pay" asp-route-id="@Model.Booking.Id"
+                               class="lux-btn-primary btn-lg">
+                                <i class="bi bi-credit-card me-1"></i>THANH TOÁN @Model.Booking.TotalAmount.ToString("N0") @Model.Booking.Currency
+                            </a>
+                        </div>
+                    </div>
+                }
+                @* === HOÀN TẤT === *@
+                else if (status == "completed" || status == "paid")
+                {
+                    <div class="action-card action-card-success">
+                        <div class="action-info">
+                            <p class="mb-1 fw-bold"><i class="bi bi-check-circle-fill text-success me-2"></i>Đơn hàng đã hoàn tất!</p>
+                            <span class="small text-muted">Thanh toán đã được thực hiện và tiền đã giải ngân vào ví KOL.</span>
+                        </div>
+                        <div class="action-buttons">
+                            @if (isCustomer)
+                            {
+                                <a asp-controller="Review" asp-action="Submit" asp-route-bookingId="@Model.Booking.Id"
+                                   class="lux-btn-primary">
+                                    <i class="bi bi-star me-1"></i>ĐÁNH GIÁ KOL
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+                @* === CHỜ ĐỐI PHƯƠNG === *@
+                else
+                {
+                    <div class="action-card">
+                        <div class="action-info">
+                            <p class="mb-1 fw-bold"><i class="bi bi-hourglass-split me-2 text-warning"></i>Đang chờ phản hồi</p>
+                            <span class="small text-muted">
+                                @if (isKol && status == "work_submitted")
+                                {
+                                    @:Bạn đã nộp sản phẩm. Đang chờ nhãn hàng nghiệm thu.
+                                }
+                                else if (isKol && status == "approved")
+                                {
+                                    @:Sản phẩm đã được nghiệm thu. Đang chờ nhãn hàng thanh toán.
+                                }
+                                else
+                                {
+                                    @:Hệ thống đang chờ phản hồi từ đối phương hoặc đang trong giai đoạn thực hiện.
+                                }
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ===== RIGHT COLUMN ===== -->
+        <div class="col-lg-4" data-reveal="fade-left">
+            <!-- Partner Info -->
+            <div class="lux-surface p-4 mb-4">
+                <h6 class="lux-cap mb-3">Đối tác hợp tác</h6>
+                @{
+                    var partnerName = isKol ? Model.Booking.CustomerUser?.FullName : Model.Booking.KolUser?.User?.FullName;
+                    var partnerRole = isKol ? "Brand / Customer" : "KOL / Creator";
+                    var partnerAvatar = isKol ? Model.Booking.CustomerUser?.AvatarUrl : Model.Booking.KolUser?.User?.AvatarUrl;
+                    if (string.IsNullOrEmpty(partnerAvatar))
+                        partnerAvatar = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(partnerName ?? "U")}&background=random";
+                }
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <img src="@partnerAvatar" class="rounded-circle" width="50" height="50" alt="@partnerName">
+                    <div>
+                        <div class="fw-bold">@partnerName</div>
+                        <div class="small text-muted">@partnerRole</div>
+                    </div>
+                </div>
+                <div class="d-grid gap-2">
+                    @{
+                        var chatConv = Model.Booking.BookingRequest?.ChatConversations?.FirstOrDefault();
+                    }
+                    @if (chatConv != null)
+                    {
+                        <a asp-controller="Chat" asp-action="Conversation" asp-route-id="@chatConv.Id"
+                           class="lux-btn-outline d-flex align-items-center justify-content-center gap-2">
+                            <i class="bi bi-chat-dots"></i> Nhắn tin trao đổi
+                        </a>
+                    }
+                    <a asp-controller="Meeting" asp-action="Schedule" asp-route-bookingId="@Model.Booking.Id"
+                       class="lux-btn-outline d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-camera-video"></i> Đặt lịch họp
+                    </a>
+                </div>
+            </div>
+
+            <!-- Contracts Section -->
+            <div class="lux-surface p-4 mb-4">
+                <h6 class="lux-cap mb-3">Hợp đồng</h6>
+                @if (Model.Booking.Contracts.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @foreach (var contract in Model.Booking.Contracts.OrderByDescending(c => c.Version))
+                        {
+                            <a asp-controller="Contract" asp-action="Details" asp-route-id="@contract.Id"
+                               class="list-group-item list-group-item-action bg-transparent px-0 border-0 mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small">@contract.Title</span>
+                                    <span class="badge @(contract.Status == "signed" ? "bg-success" : "bg-secondary") small">
+                                        @(contract.Status == "signed" ? "Đã ký" : contract.Status == "draft" ? "Nháp" : contract.Status.ToUpper())
+                                    </span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Chưa có hợp đồng nào.</p>
+                }
+            </div>
+
+            <!-- Deliverables Section -->
+            <div class="lux-surface p-4">
+                <h6 class="lux-cap mb-3">Sản phẩm bàn giao</h6>
+                @if (Model.Booking.Deliverables.Any())
+                {
+                    <div class="list-group list-group-flush">
+                        @{ int delIndex = 1; }
+                        @foreach (var del in Model.Booking.Deliverables.OrderByDescending(d => d.CreatedAt))
+                        {
+                            <div class="list-group-item bg-transparent px-0 border-0 mb-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-bold small">Sản phẩm #@delIndex</span>
+                                    <span class="badge @(del.Status == "submitted" ? "bg-info" : del.Status == "approved" ? "bg-success" : "bg-secondary") small">
+                                        @(del.Status == "submitted" ? "Đã nộp" : del.Status?.ToUpper())
+                                    </span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(del.Title))
+                                {
+                                    <a href="@del.Title" target="_blank" class="small text-gold text-truncate d-block">
+                                        <i class="bi bi-link-45deg me-1"></i>@del.Title
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(del.Description))
+                                {
+                                    <p class="small text-muted mb-0 mt-1">@del.Description</p>
+                                }
+                            </div>
+                            delIndex++;
+                        }
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted small mb-0">Chưa có sản phẩm nào được nộp.</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .progress-step { position: relative; z-index: 2; }
+    .step-icon {
+        width: 50px; height: 50px;
+        background: white;
+        border: 2px solid #eee;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto;
+        font-size: 1.2rem;
+        transition: all 0.3s ease;
+    }
+    .progress-step.active .step-icon {
+        background: var(--lux-primary-indigo, #6366f1);
+        border-color: var(--lux-primary-indigo, #6366f1);
+        color: white;
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    }
+    .step-connector {
+        position: absolute;
+        top: 25px; left: 10%; right: 10%;
+        height: 2px;
+        background: #eee;
+        z-index: 1;
+    }
+
+    /* Action cards */
+    .action-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,.08);
+        background: rgba(0,0,0,.01);
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+    .action-card-highlight {
+        background: linear-gradient(135deg, rgba(212,175,55,.06), rgba(212,175,55,.12));
+        border-color: rgba(212,175,55,.3);
+    }
+    .action-card-success {
+        background: linear-gradient(135deg, rgba(34,197,94,.05), rgba(34,197,94,.1));
+        border-color: rgba(34,197,94,.2);
+    }
+    .action-info { flex: 1; min-width: 200px; }
+    .action-buttons { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+    .action-step-badge {
+        display: inline-block;
+        background: var(--lux-primary-indigo, #6366f1);
+        color: white;
+        font-size: .7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 2px 10px;
+        border-radius: 20px;
+        margin-bottom: .5rem;
+    }
+    .border-gold { border-color: var(--lux-accent-gold, #d4af37) !important; }
+    .text-gold { color: var(--lux-accent-gold, #d4af37) !important; }
+</style>

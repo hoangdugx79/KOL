@@ -1,0 +1,86 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+
+<div class="lux-card position-relative w-100 h-100 text-decoration-none d-flex flex-column lux-surface lux-surface-hover overflow-hidden group" style="background: var(--lux-surface-white); isolation: isolate;">
+    <!-- Featured Image Area -->
+    <div class="lux-card-img-wrap position-relative w-100" style="padding-top: 110%; background: #F3F4F6; overflow: hidden;">
+        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+        {
+            <img src="@Model.AvatarUrl" alt="@Model.FullName" class="position-absolute top-0 start-0 w-100 h-100 object-fit-cover" style="transition: transform 0.6s cubic-bezier(.25, 1, .5, 1);" loading="lazy" />
+        }
+        else
+        {
+            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column align-items-center justify-content-center bg-light">
+                <i class="bi bi-person text-secondary" style="font-size: 3rem; opacity: 0.5;"></i>
+                <span class="small text-muted mt-2">Đang tải ảnh...</span>
+            </div>
+        }
+        
+        <!-- Gradient Overlay for Contrast -->
+        <div class="position-absolute bottom-0 start-0 w-100 h-50" style="background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0) 100%);"></div>
+
+        <!-- Verified Badge (Gold) -->
+        <div class="position-absolute top-0 end-0 m-3 d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style="width: 28px; height: 28px;">
+            <i class="bi bi-patch-check-fill" style="color: var(--lux-accent-gold); font-size: 1.1rem;"></i>
+        </div>
+
+        <!-- Platform Icons -->
+        <div class="position-absolute bottom-0 start-0 w-100 p-3 d-flex gap-2">
+            @if (Model.Platforms != null)
+            {
+                var uniquePlatforms = Model.Platforms.Select(p => p.ToLower()).Distinct();
+                @if (uniquePlatforms.Contains("tiktok")) { <span class="badge bg-dark bg-opacity-75 text-white d-flex align-items-center gap-1 backdrop-blur px-2 py-1" style="backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="bi bi-tiktok"></i><span class="fw-normal" style="font-size: 0.65rem;">TikTok</span></span> }
+                @if (uniquePlatforms.Contains("instagram")) { <span class="badge bg-dark bg-opacity-75 text-white d-flex align-items-center gap-1 backdrop-blur px-2 py-1" style="background: linear-gradient(45deg, rgba(245,133,41,0.8), rgba(221,42,123,0.8), rgba(129,52,175,0.8)); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="bi bi-instagram"></i><span class="fw-normal" style="font-size: 0.65rem;">IG</span></span> }
+                @if (uniquePlatforms.Contains("facebook")) { <span class="badge bg-primary bg-opacity-75 text-white d-flex align-items-center gap-1 backdrop-blur px-2 py-1" style="backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="bi bi-facebook"></i><span class="fw-normal" style="font-size: 0.65rem;">FB</span></span> }
+                @if (uniquePlatforms.Contains("youtube")) { <span class="badge bg-danger bg-opacity-75 text-white d-flex align-items-center gap-1 backdrop-blur px-2 py-1" style="backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); border-radius: 4px;"><i class="bi bi-youtube"></i><span class="fw-normal" style="font-size: 0.65rem;">YT</span></span> }
+            }
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="px-4 py-3 d-flex flex-column flex-grow-1 bg-white relative z-2">
+        <!-- Category Tag -->
+        <div class="mb-2">
+            @{
+                var displayCategory = !string.IsNullOrEmpty(Model.Category) && Model.Category != "Tất cả" ? Model.Category : "Đa Lĩnh Vực";
+            }
+            <span class="text-uppercase fw-semibold" style="color: var(--lux-accent-gold); font-size: 0.65rem; letter-spacing: 1px;">@displayCategory</span>
+        </div>
+
+        <!-- Name & Title -->
+        <h4 class="lux-heading fs-5 fw-bold mb-1 text-truncate" style="color: var(--lux-primary-indigo);">@Model.FullName</h4>
+        <p class="text-muted small mb-3 text-truncate">KOL / Influencer</p>
+
+        <!-- Metrics Grid -->
+        <div class="row gx-2 mt-auto mb-3">
+            <div class="col-6">
+                <div class="p-2 rounded" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">
+                    <div class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase;">Người Theo Dõi</div>
+                    <div class="fw-bold" style="color: var(--lux-primary-indigo); font-size: 0.95rem;">@((Model.TotalFollowers ?? 0).ToString("N0"))</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-2 rounded text-end" style="background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.04);">
+                    <div class="text-muted mb-1" style="font-size: 0.65rem; text-transform: uppercase;">Giá Dự Kiến</div>
+                    @{
+                        // Random base price calculation for MVP demo purposes to create realistic design
+                        long followers = Model.TotalFollowers ?? 0;
+                        var basePriceRange = (followers > 500000 ? "15tr-50tr" : followers > 100000 ? "8tr-20tr" : "2tr-5tr");
+                    }
+                    <div class="fw-bold" style="color: var(--lux-primary-indigo); font-size: 0.9rem;">Từ @basePriceRange</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Area -->
+        <div class="d-flex align-items-center justify-content-between pt-3 border-top" style="border-color: var(--lux-border-light) !important;">
+            <a asp-controller="Home" asp-action="KolDetail" asp-route-id="@Model.UserId" class="lux-btn-outline w-100 text-center py-2 text-decoration-none" style="border-radius: 6px; font-size: 0.85rem;">Xem Hồ Sơ</a>
+            <button class="btn btn-sm btn-light ms-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; border-radius: 6px; border: 1px solid var(--lux-border-light); background: #fff;" title="Lưu danh sách">
+                <i class="bi bi-bookmark text-muted"></i>
+            </button>
+        </div>
+    </div>
+    <style>
+        .lux-card:hover img { transform: scale(1.05); }
+        .group:hover .lux-btn-outline { background: var(--lux-primary-indigo); color: #fff; border-color: var(--lux-primary-indigo); }
+    </style>
+</div>

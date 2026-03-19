@@ -1,0 +1,499 @@
+@using System.Linq
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+@{
+    ViewData["Title"] = $"Hồ sơ KOL {Model.FullName} - {Model.InfluencerType} Influencer tại {Model.LocationCity}";
+    ViewData["MetaDescription"] = $"Xem hồ sơ chi tiết của KOL {Model.FullName}. Chuyên gia {Model.InfluencerType} tại {Model.LocationCity}. Xem bảng giá dịch vụ và các sản phẩm đã thực hiện.";
+}
+<div class="profile-header mb-5">
+    <div class="profile-cover shimmer"></div>
+    <div class="container px-4">
+        <div class="row align-items-end profile-avatar-wrap">
+            <div class="col-auto">
+                <div class="position-relative">
+                    <img src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(Model.FullName)}&size=200&background=random" : Model.AvatarUrl)" 
+                         class="rounded-circle shadow-lg border border-4 border-white animate-float" 
+                         alt="@Model.FullName" 
+                         style="width: 160px; height: 160px; object-fit: cover;"
+                         onerror="this.src='https://ui-avatars.com/api/?name=@Uri.EscapeDataString(Model.FullName)&size=200&background=random'">
+                    @if (Model.IsVerified)
+                    {
+                        <div class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1 shadow">
+                            <i class="bi bi-patch-check-fill text-primary" style="font-size: 1.8rem;"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col py-3">
+                <h1 class="display-5 fw-bold mb-1">@Model.FullName</h1>
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <span class="badge rounded-pill bg-primary px-3 py-2 fw-semibold">@Model.InfluencerType Influencer</span>
+                    <span class="text-muted"><i class="bi bi-geo-alt-fill text-danger me-1"></i> @Model.LocationCity, @Model.LocationCountry</span>
+                    <div class="vr opacity-25 d-none d-md-block"></div>
+                    <div class="d-flex align-items-center">
+                        <span class="text-warning fw-bold me-1">⭐ @Model.RatingAvg</span>
+                        <span class="text-muted small">(@Model.RatingCount đánh giá)</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-auto py-3">
+                <div class="d-flex gap-2">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <button class="btn btn-primary btn-lg rounded-pill shadow-sm px-4"
+                                data-bs-toggle="modal" data-bs-target="#bookingModal"
+                                id="btnDatLich">
+                            <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
+                        </button>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login"
+                           class="btn btn-primary btn-lg rounded-pill shadow-sm px-4">
+                            <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
+                        </a>
+                    }
+                    <button class="btn btn-outline-light text-dark border rounded-pill px-3 shadow-xs">
+                        <i class="bi bi-share"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row g-5">
+        <!-- Dashboard Sidebar -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4 rounded-4 mb-4 sticky-top" style="top: 100px;">
+                <h5 class="fw-bold mb-4">Giới thiệu bản thân</h5>
+                <p class="text-secondary mb-5" style="line-height: 1.8;">
+                    @(string.IsNullOrWhiteSpace(Model.Bio) ? "Hồ sơ đang được cập nhật..." : Model.Bio)
+                </p>
+
+                <h5 class="fw-bold mb-3">Kết nối mạng xã hội</h5>
+                <div class="d-grid gap-2 mb-4">
+                    @foreach (var social in Model.SocialAccounts)
+                    {
+                        <a href="@social.ProfileUrl" target="_blank" class="btn btn-light border-0 d-flex justify-content-between align-items-center p-3 hover-lift" style="background: var(--background);">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-white shadow-xs p-2 d-flex">
+                                    <i class="bi bi-@(social.Platform.ToLower() == "facebook" ? "facebook text-primary" : "link-45deg") fs-5"></i>
+                                </div>
+                                <span class="fw-bold">@social.Platform</span>
+                            </div>
+                            <span class="badge bg-white text-dark border rounded-pill">@(social.Followers?.ToString("N0") ?? "0")</span>
+                        </a>
+                    }
+                </div>
+
+                <div class="p-3 bg-primary-light rounded-3 border border-primary border-opacity-10 mt-auto">
+                    <div class="small text-primary fw-bold mb-1">Ngân sách dự kiến</div>
+                    <div class="h4 fw-bold text-primary mb-0">Từ @(Model.MinBudget?.ToString("N0") ?? "N/A") <small>VND</small></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content: Repository & Rate Cards -->
+        <div class="col-lg-8">
+            <!-- Portfolio Section (The "Repository") -->
+            <div class="mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold mb-0">Portfolio Highlight</h3>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill">@Model.Portfolios.Count() Sản phẩm</span>
+                </div>
+                
+                @if (!Model.Portfolios.Any())
+                {
+                    <div class="text-center py-5 rounded-4 border border-dashed">
+                        <i class="bi bi-images fs-1 text-muted opacity-50"></i>
+                        <p class="text-muted mt-2 mb-0">Chưa có portfolio. Vui lòng liên hệ để xem thêm.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="portfolio-container">
+                        @foreach (var p in Model.Portfolios.Take(6))
+                        {
+                            <div class="portfolio-item hover-lift">
+                                <img src="@p.MediaUrl" 
+                                     class="portfolio-img" 
+                                     alt="@p.Title"
+                                     loading="lazy"
+                                     onerror="this.src='https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?w=600&h=600&fit=crop'">
+                                <div class="portfolio-overlay">
+                                    <h6 class="portfolio-title fw-bold mb-1">@p.Title</h6>
+                                    <p class="small opacity-75 mb-2" style="font-size:.75rem;">@p.Description</p>
+                                    <span class="btn btn-sm btn-light rounded-pill px-3 portfolio-link">
+                                        Xem chi tiết <i class="bi bi-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Services Section -->
+            <div>
+                <h3 class="fw-bold mb-4">Dịch vụ & Báo giá</h3>
+                @if (!Model.RateCards.Any())
+                {
+                    <div class="p-5 text-center bg-light rounded-4 border-dashed">
+                        <p class="text-muted mb-0">Vui lòng liên hệ trực tiếp để có bảng giá chi tiết.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var rc in Model.RateCards)
+                    {
+                        <div class="mb-5">
+                            <h5 class="text-uppercase small fw-bold text-primary mb-3 letter-spacing-1">@rc.Title</h5>
+                            <div class="row g-3">
+                                @foreach (var item in rc.RateCardItems)
+                                {
+                                    <div class="col-md-6">
+                                        <div class="card glass-card h-100 p-4 hover-lift">
+                                            <div class="d-flex justify-content-between mb-3">
+                                                <span class="badge bg-accent-light text-accent rounded-pill px-3">@item.Platform</span>
+                                                <div class="h5 fw-bold text-primary mb-0">@item.UnitPrice.ToString("N0") <small>@rc.Currency</small></div>
+                                            </div>
+                                            <h6 class="fw-bold mb-2">@item.ServiceType</h6>
+                                            <p class="text-muted small mb-4">@item.Description</p>
+                                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                                <span class="small text-muted"><i class="bi bi-clock-history me-1"></i>Hoàn thành nhanh</span>
+                                                <a asp-controller="Booking" asp-action="Create" asp-route-kolId="@Model.UserId" class="btn btn-primary btn-sm rounded-pill px-3">Chọn ngay</a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.Identity?.IsAuthenticated == true)
+{
+<!-- ╔══════════════════════════════════════════════════════════╗ -->
+<!-- ║             BOOKING MODAL - REAL-TIME DATE PICKER        ║ -->
+<!-- ╚══════════════════════════════════════════════════════════╝ -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:1.5rem; overflow:hidden;">
+
+            <!-- Header -->
+            <div class="modal-header border-0 py-4 px-5" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">
+                <div>
+                    <h4 class="modal-title fw-bold text-white mb-1" id="bookingModalLabel">
+                        <i class="bi bi-calendar-check me-2"></i>Đặt lịch hợp tác
+                    </h4>
+                    <p class="text-white opacity-75 mb-0 small">Với <strong>@Model.FullName</strong> · @Model.InfluencerType Influencer</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body p-0">
+                <div class="row g-0">
+
+                    <!-- Left: Calendar -->
+                    <div class="col-lg-5 p-4" style="background:#f8faff; border-right:1px solid #e8ecf8;">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-calendar3 me-2"></i>Chọn ngày chiến dịch</h6>
+
+                        <!-- Mini Calendar -->
+                        <div class="booking-calendar mb-3">
+                            <div class="cal-header d-flex justify-content-between align-items-center mb-3">
+                                <button class="btn btn-sm btn-light rounded-circle" id="calPrev"><i class="bi bi-chevron-left"></i></button>
+                                <span class="fw-bold" id="calMonthLabel"></span>
+                                <button class="btn btn-sm btn-light rounded-circle" id="calNext"><i class="bi bi-chevron-right"></i></button>
+                            </div>
+                            <div class="cal-weekdays d-grid mb-2" style="grid-template-columns:repeat(7,1fr); text-align:center;">
+                                <span class="small text-muted fw-bold">CN</span><span class="small text-muted fw-bold">T2</span>
+                                <span class="small text-muted fw-bold">T3</span><span class="small text-muted fw-bold">T4</span>
+                                <span class="small text-muted fw-bold">T5</span><span class="small text-muted fw-bold">T6</span>
+                                <span class="small text-muted fw-bold">T7</span>
+                            </div>
+                            <div class="cal-days d-grid" id="calDays" style="grid-template-columns:repeat(7,1fr); gap:4px;"></div>
+                        </div>
+
+                        <!-- Selected range display -->
+                        <div class="d-flex gap-2 mb-3">
+                            <div class="flex-grow-1">
+                                <label class="form-label small fw-bold text-muted mb-1">Ngày bắt đầu</label>
+                                <div class="form-control bg-white text-center fw-bold text-primary" id="displayStart">Chưa chọn</div>
+                                <input type="hidden" id="hiddenStartDate" name="StartDate">
+                            </div>
+                            <div class="d-flex align-items-end pb-2"><i class="bi bi-arrow-right text-muted"></i></div>
+                            <div class="flex-grow-1">
+                                <label class="form-label small fw-bold text-muted mb-1">Ngày kết thúc</label>
+                                <div class="form-control bg-white text-center fw-bold text-primary" id="displayEnd">Chưa chọn</div>
+                                <input type="hidden" id="hiddenEndDate" name="EndDate">
+                            </div>
+                        </div>
+
+                        <!-- Time slots -->
+                        <h6 class="fw-bold mb-2 text-primary"><i class="bi bi-clock me-2"></i>Khung giờ làm việc</h6>
+                        <div class="d-flex flex-wrap gap-2" id="timeSlots">
+                            @foreach (var t in new[]{"08:00","09:00","10:00","11:00","13:00","14:00","15:00","16:00","17:00"})
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill time-slot" data-time="@t">@t</button>
+                            }
+                        </div>
+                        <input type="hidden" id="hiddenTimeSlot">
+                    </div>
+
+                    <!-- Right: Booking Form -->
+                    <div class="col-lg-7 p-4">
+                        <h6 class="fw-bold mb-3 text-primary"><i class="bi bi-pencil-square me-2"></i>Thông tin yêu cầu</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Gói dịch vụ / Nền tảng</label>
+                            <select class="form-select" id="bk_service">
+                                <option value="">-- Chọn nền tảng hợp tác --</option>
+                                @foreach (var plat in Model.Platforms)
+                                {
+                                    <option value="@plat">📱 @plat</option>
+                                }
+                                <option value="Trọn gói">🎯 Trọn gói (tất cả platforms)</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Mô tả chiến dịch <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="bk_desc" rows="3"
+                                      placeholder="Mô tả sản phẩm/thương hiệu, mục tiêu chiến dịch, yêu cầu nội dung..."></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Ngân sách dự kiến (VND)</label>
+                            <div class="d-flex gap-2 flex-wrap" id="budgetBtns">
+                                @foreach (var b in new[]{"5.000.000","10.000.000","20.000.000","50.000.000","Thương lượng"})
+                                {
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill budget-btn" data-val="@b">@b</button>
+                                }
+                            </div>
+                            <input type="text" class="form-control mt-2" id="bk_budget" placeholder="Hoặc nhập số tiền...">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Ghi chú thêm</label>
+                            <textarea class="form-control" id="bk_notes" rows="2" placeholder="Thông tin liên hệ, lưu ý đặc biệt..."></textarea>
+                        </div>
+
+                        <!-- Summary box -->
+                        <div class="p-3 rounded-3 mb-3" id="bookingSummary"
+                             style="background:linear-gradient(135deg,#ede9fe,#dbeafe); display:none;">
+                            <h6 class="fw-bold mb-2"><i class="bi bi-check2-circle text-primary me-2"></i>Tóm tắt booking</h6>
+                            <div class="small" id="summaryContent"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer border-0 px-5 py-4" style="background:#f8faff;">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary rounded-pill px-5 fw-bold" id="btnConfirmBooking">
+                    <i class="bi bi-send me-2"></i>Gửi yêu cầu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow text-center p-4" style="border-radius:1.5rem;">
+            <div class="mb-3" style="font-size:4rem;">🎉</div>
+            <h4 class="fw-bold mb-2">Gửi yêu cầu thành công!</h4>
+            <p class="text-muted mb-4">Yêu cầu booking của bạn đã được ghi nhận.<br>
+                <strong>@Model.FullName</strong> sẽ phản hồi trong vòng 24 giờ.</p>
+            <button class="btn btn-primary rounded-pill px-5" data-bs-dismiss="modal">Tuyệt vời!</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<style>
+    /* ── Booking Calendar ────── */
+    .booking-calendar { background:#fff; border-radius:1rem; padding:1rem; box-shadow:0 2px 12px rgba(99,102,241,.1); }
+    .cal-day {
+        aspect-ratio:1; display:flex; align-items:center; justify-content:center;
+        border-radius:.5rem; font-size:.85rem; cursor:pointer; transition:all .15s;
+        border: 1px solid transparent;
+    }
+    .cal-day:hover:not(.cal-disabled) { background:#ede9fe; color:#6366f1; border-color:#c4b5fd; }
+    .cal-day.cal-disabled { color:#cbd5e1; cursor:not-allowed; }
+    .cal-day.cal-today { border:2px solid #6366f1; font-weight:700; color:#6366f1; }
+    .cal-day.cal-selected { background:#6366f1; color:#fff !important; font-weight:700; border-color:#6366f1; }
+    .cal-day.cal-in-range { background:#ede9fe; color:#6366f1; }
+    .cal-day.cal-start { background:#6366f1; color:#fff; border-radius:.5rem 0 0 .5rem; }
+    .cal-day.cal-end   { background:#6366f1; color:#fff; border-radius:0 .5rem .5rem 0; }
+    .time-slot.active  { background:#6366f1; color:#fff; border-color:#6366f1; }
+    .budget-btn.active { background:#6366f1; color:#fff; border-color:#6366f1; }
+</style>
+
+<script>
+(function(){
+    /* ── Calendar state ── */
+    let viewYear, viewMonth;
+    let startDate = null, endDate = null, pickingEnd = false;
+    const today = new Date(); today.setHours(0,0,0,0);
+
+    const fmt = d => d ? `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()}` : '';
+    const fmtInput = d => d ? `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')}` : '';
+    const daysBetween = (a,b) => Math.round((b-a)/(1000*60*60*24));
+
+    const months = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+
+    function renderCalendar(){
+        const label = document.getElementById('calMonthLabel');
+        label.textContent = `${months[viewMonth]} ${viewYear}`;
+        const grid = document.getElementById('calDays');
+        grid.innerHTML = '';
+        const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+        const daysInMonth = new Date(viewYear, viewMonth+1, 0).getDate();
+
+        // Empty cells for days before 1st
+        for(let i=0;i<firstDay;i++){
+            const e=document.createElement('div'); e.className='cal-day cal-disabled';
+            grid.appendChild(e);
+        }
+        for(let d=1;d<=daysInMonth;d++){
+            const date = new Date(viewYear, viewMonth, d);
+            const cell = document.createElement('div');
+            cell.textContent = d;
+            cell.className = 'cal-day';
+            if(date < today) cell.classList.add('cal-disabled');
+            else {
+                if(date.getTime()===today.getTime()) cell.classList.add('cal-today');
+                if(startDate && date.getTime()===startDate.getTime()) cell.classList.add('cal-selected','cal-start');
+                if(endDate   && date.getTime()===endDate.getTime())   cell.classList.add('cal-selected','cal-end');
+                if(startDate && endDate && date>startDate && date<endDate) cell.classList.add('cal-in-range');
+                cell.addEventListener('click', ()=>onDayClick(date));
+            }
+            grid.appendChild(cell);
+        }
+        updateSummary();
+    }
+
+    function onDayClick(date){
+        if(!pickingEnd || !startDate){
+            startDate = date; endDate = null; pickingEnd = true;
+        } else {
+            if(date < startDate){ startDate=date; endDate=null; }
+            else { endDate=date; pickingEnd=false; }
+        }
+        document.getElementById('displayStart').textContent = startDate ? fmt(startDate) : 'Chưa chọn';
+        document.getElementById('displayEnd').textContent   = endDate   ? fmt(endDate)   : 'Chọn ngày cuối';
+        document.getElementById('hiddenStartDate').value = fmtInput(startDate);
+        document.getElementById('hiddenEndDate').value   = fmtInput(endDate);
+        renderCalendar();
+    }
+
+    /* ── Init ── */
+    viewYear  = today.getFullYear();
+    viewMonth = today.getMonth();
+    document.getElementById('calPrev').onclick = ()=>{ viewMonth--; if(viewMonth<0){viewMonth=11;viewYear--;} renderCalendar(); };
+    document.getElementById('calNext').onclick = ()=>{ viewMonth++; if(viewMonth>11){viewMonth=0;viewYear++;} renderCalendar(); };
+
+    /* ── Time slots ── */
+    document.querySelectorAll('.time-slot').forEach(btn=>{
+        btn.addEventListener('click',function(){
+            document.querySelectorAll('.time-slot').forEach(b=>b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('hiddenTimeSlot').value = this.dataset.time;
+            updateSummary();
+        });
+    });
+
+    /* ── Budget quick-select ── */
+    document.querySelectorAll('.budget-btn').forEach(btn=>{
+        btn.addEventListener('click',function(){
+            document.querySelectorAll('.budget-btn').forEach(b=>b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('bk_budget').value = this.dataset.val;
+            updateSummary();
+        });
+    });
+
+    /* ── Summary update ── */
+    function updateSummary(){
+        const svc   = document.getElementById('bk_service').value;
+        const slot  = document.getElementById('hiddenTimeSlot').value;
+        const budget= document.getElementById('bk_budget').value;
+        const box   = document.getElementById('bookingSummary');
+        const cont  = document.getElementById('summaryContent');
+        if(!startDate) return;
+        const days  = endDate ? daysBetween(startDate,endDate) : 0;
+        let html = `<div class="d-flex flex-wrap gap-3">`;
+        html += `<span>📅 <strong>${fmt(startDate)}</strong>${endDate?' → '+fmt(endDate):''}${days?' ('+days+' ngày)':''}</span>`;
+        if(slot)   html += `<span>⏰ <strong>${slot}</strong></span>`;
+        if(svc)    html += `<span>📱 <strong>${svc}</strong></span>`;
+        if(budget) html += `<span>💰 <strong>${budget} VND</strong></span>`;
+        html += '</div>';
+        cont.innerHTML = html;
+        box.style.display = 'block';
+    }
+    document.getElementById('bk_service').addEventListener('change', updateSummary);
+    document.getElementById('bk_budget').addEventListener('input',   updateSummary);
+
+    /* ── Confirm booking ── */
+    document.getElementById('btnConfirmBooking').addEventListener('click', async function(){
+        const desc = document.getElementById('bk_desc').value.trim();
+        if(!startDate){ alert('Vui lòng chọn ngày bắt đầu'); return; }
+        if(!desc)      { alert('Vui lòng mô tả chiến dịch của bạn'); return; }
+
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang gửi...';
+
+        const budgetRaw = document.getElementById('bk_budget').value.replace(/[^0-9]/g,'');
+        const payload = {
+            kolUserId: '@Model.UserId',
+            title: desc.substring(0, 100),
+            brief: desc,
+            budgetMin: budgetRaw ? parseFloat(budgetRaw) : null,
+            serviceType: document.getElementById('bk_service').value,
+            startDate: document.getElementById('hiddenStartDate').value || null,
+            endDate: document.getElementById('hiddenEndDate').value || null,
+            workingHour: document.getElementById('hiddenTimeSlot').value || null,
+            note: document.getElementById('bk_notes').value.trim() || null
+        };
+
+        try {
+            const token = document.querySelector('meta[name="request-token"]')?.content
+                       || document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                       || '';
+            const res = await fetch('/api/booking/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+                setTimeout(()=>{ new bootstrap.Modal(document.getElementById('successModal')).show(); }, 300);
+            } else if (res.status === 401) {
+                window.location.href = '/Auth/Login';
+            } else {
+                const err = await res.json().catch(()=>({}));
+                alert(err.message || 'Gửi yêu cầu thất bại. Vui lòng thử lại.');
+            }
+        } catch(e) {
+            alert('Lỗi kết nối. Vui lòng thử lại.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-send me-2"></i>Gửi yêu cầu';
+        }
+    });
+
+    renderCalendar();
+})();
+</script>
+}
+}

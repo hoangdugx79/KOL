@@ -1,0 +1,43 @@
+@model List<KOL_KOC_TAAA.ViewModels.CaseStudyViewModel>
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Thành công thực tế - Case Studies";
+}
+
+<div class="container py-5">
+    <div class="mb-5 text-center" data-reveal="fade-up">
+        <span class="lux-cap mb-3 d-block">Chứng minh năng lực</span>
+        <h1 class="lux-h1">Chiến dịch <span class="text-gradient-gold">Tiêu biểu</span></h1>
+        <p class="text-muted mx-auto" style="max-width: 600px;">Khám phá cách chúng tôi giúp các thương hiệu bùng nổ doanh số và nhận diện thông qua mạng lưới KOL/KOC chuyên nghiệp.</p>
+    </div>
+
+    <div class="row g-5">
+        @foreach (var study in Model)
+        {
+            <div class="col-lg-6" data-reveal="fade-up">
+                <div class="lux-surface overflow-hidden group">
+                    <div class="ratio ratio-16x9 bg-light overflow-hidden">
+                        <img src="@study.ImageUrl" class="object-fit-cover transition-transform" style="transition: transform 0.6s ease;" alt="@study.BrandName">
+                    </div>
+                    <div class="p-5">
+                        <div class="d-flex justify-content-between align-items-start mb-4">
+                            <div>
+                                <span class="lux-cap small text-gold mb-2 d-block">@study.CampaignGoal</span>
+                                <h2 class="lux-h2">@study.BrandName</h2>
+                            </div>
+                            <div class="text-end">
+                                <span class="fs-4 fw-bold text-gradient-gold">@study.ResultHighlight</span>
+                            </div>
+                        </div>
+                        <p class="text-muted mb-5">@study.Description</p>
+                        <a asp-action="Detail" asp-route-id="@study.BrandName.ToLower().Replace(" ", "-")" class="lux-btn-outline w-fit">XEM KẾT QUẢ CHI TIẾT</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .group:hover img { transform: scale(1.05); }
+</style>

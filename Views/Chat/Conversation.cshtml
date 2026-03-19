@@ -1,0 +1,327 @@
+@model KOL_KOC_TAAA.Models.ChatConversation
+@using System.Security.Claims
+@using System.Text.Json
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = $"Chat với {Model.ChatMembers.FirstOrDefault(m => m.UserId != Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)))?.User?.FullName} - KOL Market";
+    var currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+    var messages = ViewBag.Messages as List<KOL_KOC_TAAA.Models.ChatMessage> ?? new List<KOL_KOC_TAAA.Models.ChatMessage>();
+    var req = Model.BookingRequest;
+
+    // Parse extra notes from BookingRequestItem
+    var bkItem = req?.BookingRequestItems.FirstOrDefault();
+    string bkHour = "", bkNote = "";
+    if (bkItem?.Notes != null)
+    {
+        try {
+            var j = JsonSerializer.Deserialize<JsonElement>(bkItem.Notes);
+            bkHour = j.TryGetProperty("hour", out var h) ? h.GetString() ?? "" : "";
+            bkNote = j.TryGetProperty("note", out var n) ? n.GetString() ?? "" : "";
+        } catch { bkNote = bkItem.Notes; }
+    }
+
+    int dayCount = 0;
+    if (req?.ProposedStartDate != null && req?.ProposedEndDate != null)
+        dayCount = req.ProposedEndDate.Value.DayNumber - req.ProposedStartDate.Value.DayNumber + 1;
+
+    string StatusLabel(string s) => s switch {
+        "accepted" => "Đã chấp nhận", "active_contract" => "Đang hợp tác",
+        "rejected" => "Từ chối", _ => "Chờ duyệt"
+    };
+    string StatusColor(string s) => s switch {
+        "accepted" => "#34d399", "active_contract" => "#60a5fa",
+        "rejected" => "#f87171", _ => "#f59e0b"
+    };
+}
+
+<div class="container-fluid py-4" style="height: calc(100vh - 100px);">
+    <div class="row h-100 g-0 lux-surface overflow-hidden">
+        <!-- Sidebar: Conversation List: Dẫn hướng nhanh (Hidden on mobile) -->
+        <div class="col-lg-4 col-xl-3 border-end h-100 d-none d-lg-flex flex-column">
+             <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                <h2 class="lux-h2 mb-0">Hội thoại</h2>
+                <a asp-action="Index" class="lux-btn-outline btn-sm">Tất cả</a>
+            </div>
+            <div class="flex-grow-1 overflow-auto bg-white">
+                <div class="p-5 text-center text-muted opacity-50">
+                    <p class="small">Danh sách rút gọn đang được cập nhật...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Chat Area -->
+        <div class="col-lg-8 col-xl-9 h-100 d-flex flex-row">
+            <!-- Chat column -->
+            <div class="flex-grow-1 h-100 d-flex flex-column bg-white" id="chatCol">
+                <!-- Header -->
+                <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-white position-relative z-1">
+                    <div class="d-flex align-items-center gap-3">
+                        <a asp-action="Index" class="lux-link d-lg-none"><i class="bi bi-chevron-left fs-4"></i></a>
+                        <div class="position-relative">
+                            <img src="https://ui-avatars.com/api/?name=@(Model.ChatMembers.FirstOrDefault(m => m.UserId != currentUserId)?.User?.FullName ?? "User")&background=random" class="rounded-circle" width="45" height="45">
+                            <span id="statusDot" class="position-absolute bottom-0 end-0 p-1 bg-secondary border border-white rounded-circle"></span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">@(Model.ChatMembers.FirstOrDefault(m => m.UserId != currentUserId)?.User?.FullName ?? "Đối tác")</h6>
+                            <span class="smaller text-muted text-uppercase ls-1">@Model.Type.Replace("_", " ")</span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        @if (req != null)
+                        {
+                            <button id="btnToggleDetail" class="lux-btn-primary btn-sm px-3" onclick="toggleDetail()">
+                                <i class="bi bi-info-circle me-1"></i>CHI TIẾT ĐƠN HÀNG
+                            </button>
+                        }
+                        <button class="lux-btn-outline btn-sm"><i class="bi bi-three-dots-vertical"></i></button>
+                    </div>
+                </div>
+
+                <!-- Messages Window -->
+                <div id="chat-window" class="flex-grow-1 overflow-auto p-4 bg-light d-flex flex-column gap-3" style="background-image: radial-gradient(var(--lux-border) 1px, transparent 0); background-size: 20px 20px;">
+                    @foreach (var msg in messages.OrderBy(m => m.SentAt))
+                    {
+                        var isMine = msg.SenderUserId == currentUserId;
+                        <div class="message-wrapper d-flex @(isMine ? "justify-content-end" : "justify-content-start")" data-reveal="fade-up">
+                            <div class="message-bubble @(isMine ? "mine" : "theirs") p-3">
+                                <p class="mb-1">@msg.Content</p>
+                                <span class="smaller opacity-50 d-block text-end">@msg.SentAt.ToString("HH:mm")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-3 border-top bg-white">
+                    <form id="chat-form" class="d-flex gap-3 align-items-end">
+                        <input type="hidden" id="conversationId" value="@Model.Id" />
+                        <div class="flex-grow-1 position-relative">
+                            <textarea id="message-input" rows="1" class="lux-input w-100 py-3 pe-5" placeholder="Viết phản hồi của bạn..." style="border-radius: 20px; resize: none;"></textarea>
+                            <button type="button" class="position-absolute end-0 top-50 translate-middle-y border-0 bg-transparent pe-3 text-muted"><i class="bi bi-paperclip"></i></button>
+                        </div>
+                        <button type="submit" class="lux-btn-primary rounded-circle d-flex align-items-center justify-content-center shadow-gold" style="width: 50px; height: 50px; flex-shrink: 0;"><i class="bi bi-send-fill text-white fs-5"></i></button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Booking Detail Side Panel -->
+            @if (req != null)
+            {
+                <div id="detailPanel" class="h-100 border-start overflow-auto" style="width:320px;flex-shrink:0;display:none;background:#0d0d0d;">
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center" style="border-color:#222!important">
+                        <span style="color:#c9a84c;font-size:.8rem;font-weight:700;letter-spacing:1px;text-transform:uppercase">
+                            <i class="bi bi-box-seam me-2"></i>Chi tiết đơn hàng
+                        </span>
+                        <button class="btn btn-sm p-0" style="color:#666" onclick="toggleDetail()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="p-3 d-flex flex-column gap-3">
+                        <!-- Status + Title -->
+                        <div>
+                            <span class="px-2 py-1 rounded-pill d-inline-block mb-2"
+                                  style="background:#1a1a1a;font-size:.7rem;font-weight:700;color:@StatusColor(req.Status ?? "sent")">
+                                @StatusLabel(req.Status ?? "sent")
+                            </span>
+                            <div style="color:#eee;font-weight:700;font-size:.95rem">@req.Title</div>
+                            <div style="color:#666;font-size:.75rem">@req.CreatedAt.ToString("HH:mm, dd/MM/yyyy")</div>
+                        </div>
+
+                        <!-- Dates -->
+                        @if (req.ProposedStartDate != null || req.ProposedEndDate != null)
+                        {
+                            <div style="background:#111;border:1px solid #222;border-radius:10px;padding:.75rem">
+                                <div style="color:#888;font-size:.7rem;margin-bottom:.5rem">📅 LỊCH CHIẾN DỊCH</div>
+                                <div style="color:#60a5fa;font-weight:600;font-size:.85rem">
+                                    @(req.ProposedStartDate?.ToString("dd/MM/yyyy") ?? "?")
+                                    @if (req.ProposedEndDate != null) { <text> → @req.ProposedEndDate.Value.ToString("dd/MM/yyyy")</text> }
+                                </div>
+                                @if (dayCount > 0)
+                                {
+                                    <div style="color:#666;font-size:.75rem">@dayCount ngày</div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(bkHour))
+                                {
+                                    <div style="color:#818cf8;font-size:.78rem;margin-top:.3rem">⏰ Khung giờ: @bkHour</div>
+                                }
+                            </div>
+                        }
+
+                        <!-- Service + Budget -->
+                        <div style="background:#111;border:1px solid #222;border-radius:10px;padding:.75rem">
+                            <div style="color:#888;font-size:.7rem;margin-bottom:.5rem">📦 GÓI DỊCH VỤ & NGÂN SÁCH</div>
+                            @if (bkItem != null && !string.IsNullOrWhiteSpace(bkItem.ServiceType))
+                            {
+                                <div style="color:#4ade80;font-size:.85rem;font-weight:600">📱 @bkItem.ServiceType</div>
+                            }
+                            <div style="color:#c9a84c;font-size:1.1rem;font-weight:800;margin-top:.3rem">
+                                @(req.BudgetMin.HasValue ? req.BudgetMin.Value.ToString("N0") + " VND" : "Thương lượng")
+                            </div>
+                        </div>
+
+                        <!-- Brief -->
+                        @if (!string.IsNullOrWhiteSpace(req.Brief))
+                        {
+                            <div style="background:#111;border:1px solid #222;border-left:3px solid #c9a84c44;border-radius:10px;padding:.75rem">
+                                <div style="color:#888;font-size:.7rem;margin-bottom:.4rem">📋 MÔ TẢ CHIẾN DỊCH</div>
+                                <div style="color:#bbb;font-size:.82rem;line-height:1.6;white-space:pre-wrap">@req.Brief</div>
+                            </div>
+                        }
+
+                        <!-- Note -->
+                        @if (!string.IsNullOrWhiteSpace(bkNote))
+                        {
+                            <div style="background:#111;border:1px solid #222;border-left:3px solid #3b82f644;border-radius:10px;padding:.75rem">
+                                <div style="color:#888;font-size:.7rem;margin-bottom:.4rem">💬 GHI CHÚ THÊM</div>
+                                <div style="color:#bbb;font-size:.82rem;line-height:1.6;white-space:pre-wrap">@bkNote</div>
+                            </div>
+                        }
+
+                        <!-- View full detail link -->
+                        <a href="/Booking/RequestDetail/@req.Id"
+                           style="display:block;text-align:center;background:#1a1a1a;border:1px solid #333;border-radius:10px;padding:.6rem;color:#c9a84c;font-size:.8rem;font-weight:600;text-decoration:none">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Xem chi tiết đầy đủ
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .message-bubble {
+        max-width: 65%;
+        border-radius: 20px;
+        position: relative;
+        font-size: 0.95rem;
+    }
+    .message-bubble.mine {
+        background: linear-gradient(135deg, var(--lux-primary-indigo), #4f46e5);
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2);
+    }
+    .message-bubble.theirs {
+        background-color: white;
+        color: var(--lux-text-dark);
+        border: 1px solid var(--lux-border);
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    }
+    .shadow-gold { box-shadow: 0 5px 15px rgba(212, 175, 55, 0.3); }
+    #chat-window { scroll-behavior: smooth; }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
+    <script>
+        const conversationId = '@Model.Id';
+        const currentUserId = '@currentUserId';
+
+        // ── SignalR Connection ──────────────────────────────────────────
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl('/chatHub')
+            .withAutomaticReconnect([0, 2000, 5000, 10000])
+            .build();
+
+        // Receive message from server (broadcast to group)
+        connection.on('ReceiveMessage', (msg) => {
+            const isMine = msg.senderId.toLowerCase() === currentUserId.toLowerCase();
+            appendMessage(msg.content, msg.sentAt, isMine);
+        });
+
+        // On reconnect, re-join the group
+        connection.onreconnected(async () => {
+            await connection.invoke('JoinConversation', conversationId);
+            updateStatus('online');
+        });
+
+        connection.onreconnecting(() => updateStatus('reconnecting'));
+        connection.onclose(() => updateStatus('offline'));
+
+        async function startSignalR() {
+            try {
+                await connection.start();
+                await connection.invoke('JoinConversation', conversationId);
+                updateStatus('online');
+            } catch (err) {
+                console.error('SignalR error:', err);
+                updateStatus('offline');
+                setTimeout(startSignalR, 5000);
+            }
+        }
+
+        function updateStatus(state) {
+            const dot = document.getElementById('statusDot');
+            if (!dot) return;
+            dot.className = 'position-absolute bottom-0 end-0 p-1 border border-white rounded-circle';
+            if (state === 'online') dot.classList.add('bg-success');
+            else if (state === 'reconnecting') dot.classList.add('bg-warning');
+            else dot.classList.add('bg-secondary');
+        }
+
+        // ── DOM Helpers ─────────────────────────────────────────────────
+        function appendMessage(content, sentAt, isMine) {
+            const chatWindow = document.getElementById('chat-window');
+            const wrapper = document.createElement('div');
+            wrapper.className = `message-wrapper d-flex ${isMine ? 'justify-content-end' : 'justify-content-start'} mb-2`;
+            // Escape HTML to prevent XSS
+            const safe = content.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            wrapper.innerHTML = `
+                <div class="message-bubble ${isMine ? 'mine' : 'theirs'} p-3">
+                    <p class="mb-1">${safe}</p>
+                    <span class="smaller opacity-50 d-block text-end">${sentAt}</span>
+                </div>`;
+            chatWindow.appendChild(wrapper);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // ── Send Message ─────────────────────────────────────────────────
+        document.getElementById('chat-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const content = input.value.trim();
+            if (!content) return;
+            if (connection.state !== signalR.HubConnectionState.Connected) {
+                alert('Đang kết nối lại, vui lòng thử lại sau giây lát...');
+                return;
+            }
+            input.value = '';
+            input.style.height = 'auto';
+            try {
+                await connection.invoke('SendMessage', conversationId, content);
+            } catch (err) {
+                console.error('Send failed:', err);
+            }
+        });
+
+        // ── Textarea auto-resize ─────────────────────────────────────────
+        const tx = document.getElementById('message-input');
+        tx.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = this.scrollHeight + 'px';
+        });
+        // Send on Enter (Shift+Enter = newline)
+        tx.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // ── Detail panel toggle ───────────────────────────────────────────
+        function toggleDetail() {
+            const panel = document.getElementById('detailPanel');
+            if (!panel) return;
+            const visible = panel.style.display !== 'none';
+            panel.style.display = visible ? 'none' : 'block';
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────
+        const chatWindow = document.getElementById('chat-window');
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        startSignalR();
+    </script>
+}

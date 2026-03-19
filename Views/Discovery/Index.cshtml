@@ -1,0 +1,180 @@
+@model KOL_KOC_TAAA.ViewModels.DiscoveryViewModel
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Khám phá KOL/KOC Marketplace";
+}
+
+<section class="discovery-hero py-5" style="background: var(--lux-bg-stone); border-bottom: var(--lux-border);">
+    <div class="container py-4">
+        <div class="row align-items-center">
+            <div class="col-lg-7">
+                <span class="lux-cap mb-2 d-block">Marketplace</span>
+                <h1 class="lux-h1 mb-3">Tìm kiếm <span class="text-gradient-gold">Tài năng</span> Phù hợp</h1>
+                <p class="text-muted fs-5 mb-0" style="max-width: 600px;">Kết nối với hơn 5,000+ KOL/KOC hàng đầu trong mọi lĩnh vực. Minh bạch, uy tín và hiệu quả.</p>
+            </div>
+            <div class="col-lg-5 d-none d-lg-block">
+                <div class="lux-surface p-4 text-center">
+                    <div class="row gx-0 text-center">
+                        <div class="col-6 border-end">
+                            <div class="lux-stat-number" style="font-size: 2rem;">5K+</div>
+                            <div class="lux-stat-label">Creators</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="lux-stat-number" style="font-size: 2rem;">12M+</div>
+                            <div class="lux-stat-label">Reach</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5">
+    <div class="row g-4">
+        <!-- Filter Sidebar -->
+        <aside class="col-lg-3">
+            <div class="sticky-sidebar" style="top: 100px;">
+                <form id="filterForm" asp-action="Index" method="get" class="lux-surface p-4">
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase ls-1">Tìm kiếm</label>
+                        <div class="position-relative">
+                            <i class="bi bi-search position-absolute top-50 translate-middle-y ms-3 text-muted" style="font-size: 0.8rem;"></i>
+                            <input type="text" name="SearchQuery" value="@Model.Filters.SearchQuery" class="lux-input w-100 ps-5" placeholder="Tên, Niche...">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase ls-1">Lĩnh vực</label>
+                        <select name="Category" class="lux-input w-100">
+                            <option value="">Tất cả lĩnh vực</option>
+                            <option value="Beauty" selected="@(Model.Filters.Category == "Beauty")">Beauty & Cosmetics</option>
+                            <option value="Tech" selected="@(Model.Filters.Category == "Tech")">Tech & Gadgets</option>
+                            <option value="Fashion" selected="@(Model.Filters.Category == "Fashion")">Fashion & Style</option>
+                            <option value="Lifestyle" selected="@(Model.Filters.Category == "Lifestyle")">Lifestyle & Home</option>
+                            <option value="Food" selected="@(Model.Filters.Category == "Food")">Food & Dining</option>
+                            <option value="Travel" selected="@(Model.Filters.Category == "Travel")">Travel & Adventure</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase ls-1">Nền tảng</label>
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            <div class="form-check lux-chip-check">
+                                <input class="btn-check" type="radio" name="Platform" value="" id="pAll" checked="@(string.IsNullOrEmpty(Model.Filters.Platform))">
+                                <label class="lux-chip" for="pAll">Tất cả</label>
+                            </div>
+                            <div class="form-check lux-chip-check">
+                                <input class="btn-check" type="radio" name="Platform" value="TikTok" id="pTikTok" checked="@(Model.Filters.Platform == "TikTok")">
+                                <label class="lux-chip" for="pTikTok"><i class="bi bi-tiktok me-1"></i> TikTok</label>
+                            </div>
+                            <div class="form-check lux-chip-check">
+                                <input class="btn-check" type="radio" name="Platform" value="Instagram" id="pIG" checked="@(Model.Filters.Platform == "Instagram")">
+                                <label class="lux-chip" for="pIG"><i class="bi bi-instagram me-1"></i> IG</label>
+                            </div>
+                            <div class="form-check lux-chip-check">
+                                <input class="btn-check" type="radio" name="Platform" value="YouTube" id="pYT" checked="@(Model.Filters.Platform == "YouTube")">
+                                <label class="lux-chip" for="pYT"><i class="bi bi-youtube me-1"></i> YT</label>
+                            </div>
+                            <div class="form-check lux-chip-check">
+                                <input class="btn-check" type="radio" name="Platform" value="Facebook" id="pFB" checked="@(Model.Filters.Platform == "Facebook")">
+                                <label class="lux-chip" for="pFB"><i class="bi bi-facebook me-1"></i> FB</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase ls-1">Followers (Min)</label>
+                        <input type="range" name="MinFollowers" class="form-range" min="0" max="1000000" step="10000" value="@(Model.Filters.MinFollowers ?? 0)" oninput="this.nextElementSibling.innerText = Number(this.value).toLocaleString() + ' +'">
+                        <span class="small text-muted">@(Model.Filters.MinFollowers?.ToString("N0") ?? "0") +</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small text-uppercase ls-1">Ngân sách dự kiến</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="number" name="MinBudget" value="@Model.Filters.MinBudget" class="lux-input w-50" placeholder="Từ">
+                            <input type="number" name="MaxBudget" value="@Model.Filters.MaxBudget" class="lux-input w-50" placeholder="Đến">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="form-check form-switch px-0 d-flex align-items-center justify-content-between">
+                            <label class="form-check-label fw-bold small text-uppercase ls-1" for="verifiedOnly">Chỉ xem KOL Verified</label>
+                            <input class="form-check-input ms-0" type="checkbox" name="IsVerified" id="verifiedOnly" value="true" checked="@(Model.Filters.IsVerified == true)">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="lux-btn-primary w-100 mt-2">ÁP DỤNG BỘ LỌC</button>
+                    <button type="button" class="btn btn-link w-100 mt-2 text-decoration-none text-muted small" onclick="resetFilters()">Đặt lại tất cả</button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Results Area -->
+        <main class="col-lg-9">
+            <!-- Results Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="text-muted small">Hiển thị <span class="fw-bold text-dark">@Model.Kols.Count</span> kết quả phù hợp</div>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="small text-muted d-none d-sm-inline">Sắp xếp:</span>
+                    <select name="SortBy" form="filterForm" class="border-0 bg-transparent fw-bold small" style="outline: none;" onchange="this.form.submit()">
+                        <option value="relevant" selected="@(Model.Filters.SortBy == "relevant")">Phù hợp nhất</option>
+                        <option value="newest" selected="@(Model.Filters.SortBy == "newest")">Mới nhất</option>
+                        <option value="followers_high" selected="@(Model.Filters.SortBy == "followers_high")">Followers cao nhất</option>
+                        <option value="price_low" selected="@(Model.Filters.SortBy == "price_low")">Giá từ thấp nhất</option>
+                        <option value="rating" selected="@(Model.Filters.SortBy == "rating")">Đánh giá cao nhất</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div id="kolGrid" class="row">
+                @await Html.PartialAsync("_KolGridPartial", Model.Kols)
+            </div>
+
+            <!-- Trending / Recommendations for empty or small results -->
+            @if (Model.Kols.Count < 4 && Model.TrendingKols.Any())
+            {
+                <div class="mt-5 pt-5 border-top">
+                    <h3 class="lux-h2 mb-4">Gợi ý dành cho bạn</h3>
+                    <div class="row">
+                        @foreach (var kol in Model.TrendingKols.Take(3))
+                        {
+                            <div class="col-md-4 mb-4">
+                                @await Html.PartialAsync("~/Views/Home/Partials/_PremiumKOLCard.cshtml", kol)
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </main>
+    </div>
+</div>
+
+<style>
+    .lux-chip-check input { display: none; }
+    .lux-chip-check input:checked + label {
+        background: var(--lux-primary-indigo);
+        color: #fff;
+        border-color: var(--lux-primary-indigo);
+    }
+    .form-range::-webkit-slider-thumb { background: var(--lux-accent-gold); }
+    .form-switch .form-check-input:checked { background-color: var(--lux-accent-gold); border-color: var(--lux-accent-gold); }
+</style>
+
+@section Scripts {
+    <script>
+        function resetFilters() {
+            document.getElementById('filterForm').reset();
+            window.location.href = '@Url.Action("Index")';
+        }
+
+        // Potential AJAX filtering logic here
+        /*
+        $('#filterForm').on('change', function() {
+            // Add loading state
+            // Fetch partial results
+        });
+        */
+    </script>
+}

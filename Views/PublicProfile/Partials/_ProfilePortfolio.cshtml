@@ -1,0 +1,118 @@
+@model List<KOL_KOC_TAAA.Models.KolPortfolio>
+
+<div class="lux-portfolio py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="fw-bold text-indigo mb-0">Nội dung & Portfolio</h5>
+        <span class="badge bg-light text-dark rounded-pill px-3 py-2">@Model.Count mục</span>
+    </div>
+
+    @if (Model == null || !Model.Any())
+    {
+        <div class="text-center py-5 border rounded-4 bg-light opacity-50">
+            <i class="bi bi-images display-4 d-block mb-3"></i>
+            <p>KOL chưa cập nhật nội dung công khai.</p>
+        </div>
+    }
+    else
+    {
+        <!-- Split by type -->
+        var posts = Model.Where(x => x.ContentType == "Article" || x.ContentType == "Announcement").ToList();
+        var images = Model.Where(x => x.ContentType != "Article" && x.ContentType != "Announcement").ToList();
+
+        @if (posts.Any())
+        {
+            <div class="mb-5">
+                <div class="lux-cap text-muted small mb-3"><i class="bi bi-newspaper me-1"></i>Bài viết & Thông báo</div>
+                <div class="row g-3">
+                    @foreach (var item in posts)
+                    {
+                        var isAnnouncement = item.ContentType == "Announcement";
+                        <div class="col-12 col-md-6" data-reveal="fade-up">
+                            <div class="portfolio-post-card p-4 rounded-4 border h-100 @(isAnnouncement ? "border-gold" : "")">
+                                <!-- Header -->
+                                <div class="d-flex align-items-center gap-2 mb-3">
+                                    <span class="badge @(isAnnouncement ? "bg-warning text-dark" : "bg-light text-dark")">
+                                        <i class="bi @(isAnnouncement ? "bi-megaphone-fill" : "bi-file-text-fill") me-1"></i>
+                                        @(isAnnouncement ? "Thông báo" : "Bài viết")
+                                    </span>
+                                    <span class="text-muted small ms-auto">
+                                        <i class="bi bi-clock me-1"></i>@item.CreatedAt.ToString("dd/MM/yyyy")
+                                    </span>
+                                </div>
+                                <!-- Title -->
+                                <h6 class="fw-bold mb-2">@item.Title</h6>
+                                <!-- Body -->
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p class="text-muted small mb-0" style="white-space:pre-line; line-height:1.7;">@item.Description</p>
+                                }
+                                <!-- Image if attached -->
+                                @if (!string.IsNullOrEmpty(item.MediaUrl))
+                                {
+                                    <div class="mt-3 rounded-3 overflow-hidden" style="max-height:180px;">
+                                        <img src="@item.MediaUrl" alt="@item.Title" class="w-100 object-fit-cover" style="object-fit:cover; height:180px;">
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (images.Any())
+        {
+            <div>
+                <div class="lux-cap text-muted small mb-3"><i class="bi bi-images me-1"></i>Dự án & Ảnh sản phẩm</div>
+                <div class="row g-3">
+                    @foreach (var item in images)
+                    {
+                        <div class="col-md-6 col-xl-4" data-reveal="fade-up">
+                            <div class="portfolio-item-card overflow-hidden rounded-4 border h-100">
+                                <div class="port-img-wrap position-relative" style="height: 200px;">
+                                    @if (!string.IsNullOrEmpty(item.MediaUrl))
+                                    {
+                                        <img src="@item.MediaUrl" alt="@item.Title" class="w-100 h-100 object-fit-cover">
+                                    }
+                                    else
+                                    {
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted">
+                                            <i class="bi bi-image fs-1"></i>
+                                        </div>
+                                    }
+                                    <div class="port-overlay d-flex align-items-center justify-content-center">
+                                        <span class="btn btn-white btn-sm rounded-pill px-3 shadow">Xem</span>
+                                    </div>
+                                </div>
+                                <div class="p-3">
+                                    <h6 class="fw-bold mb-1 text-truncate">@item.Title</h6>
+                                    <p class="text-muted small mb-0 line-clamp-2">@item.Description</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<style>
+    .portfolio-item-card, .portfolio-post-card {
+        transition: all 0.3s ease;
+        background: #fff;
+    }
+    .portfolio-item-card:hover, .portfolio-post-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .border-gold { border-color: var(--lux-accent-gold) !important; }
+    .port-img-wrap .port-overlay {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.2);
+        opacity: 0; transition: .3s;
+    }
+    .portfolio-item-card:hover .port-overlay { opacity: 1; }
+    .btn-white { background: #fff; border: none; font-weight: 600; }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+</style>

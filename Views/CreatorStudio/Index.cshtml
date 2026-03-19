@@ -1,0 +1,198 @@
+@model KOL_KOC_TAAA.ViewModels.StudioDashboardViewModel
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Creator Studio - Dashboard";
+}
+
+<div class="container py-5">
+    <!-- Header: Welcome & Quick Actions -->
+    <div class="d-flex align-items-end justify-content-between mb-5" data-reveal="fade-up">
+        <div>
+            <span class="lux-cap mb-2 d-block">Chào mừng trở lại</span>
+            <h1 class="lux-h1 mb-0">Chào, <span class="text-gradient-gold">@Model.FullName</span></h1>
+            <p class="text-muted mt-2 mb-0">Hôm nay bạn có @Model.PendingRequestsCount yêu cầu mới cần xử lý.</p>
+        </div>
+        <div class="d-flex gap-3">
+            <a asp-action="EditProfile" class="lux-btn-outline"><i class="bi bi-pencil-square me-2"></i> Chỉnh sửa hồ sơ</a>
+            <a asp-action="CreateContent" class="lux-btn-primary"><i class="bi bi-plus-lg me-2"></i> Tạo nội dung</a>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Stats Column -->
+        <div class="col-lg-8">
+            <!-- Grid 1: Core Stats -->
+            <div class="row g-4 mb-4" data-reveal="fade-up">
+                <div class="col-md-4">
+                    <div class="lux-surface p-4 text-center">
+                        <div class="lux-stat-number">@Model.TotalFollowers.ToString("N0")</div>
+                        <div class="lux-stat-label">Tổng Followers</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="lux-surface p-4 text-center">
+                        <div class="lux-stat-number">@Model.RatingAvg.ToString("F1")</div>
+                        <div class="lux-stat-label">Đánh giá TB</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="lux-surface p-4 text-center">
+                        <div class="lux-stat-number">@Model.WalletBalance.ToString("N0")</div>
+                        <div class="lux-stat-label">Số dư (VND)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Completeness Card -->
+            <div class="lux-surface p-4 mb-4" data-reveal="fade-up">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h5 class="lux-h2 mb-0">Độ hoàn thiện hồ sơ</h5>
+                    <span class="badge @(Model.ProfileCompleteness > 80 ? "bg-success" : "bg-warning")">@Model.ProfileCompleteness%</span>
+                </div>
+                <div class="progress mb-4" style="height: 8px; border-radius: 4px; background: var(--lux-bg-stone);">
+                    <div class="progress-bar" role="progressbar" style="width: @Model.ProfileCompleteness%; background: var(--lux-accent-gold);" aria-valuenow="@Model.ProfileCompleteness" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-0"><i class="bi @(Model.ProfileCompleteness >= 20 ? "bi-check-circle-fill text-success" : "bi-circle text-muted") me-2"></i> Đã tải ảnh đại diện</p>
+                        <p class="small text-muted mb-0"><i class="bi @(Model.ProfileCompleteness >= 40 ? "bi-check-circle-fill text-success" : "bi-circle text-muted") me-2"></i> Đã viết Bio chi tiết</p>
+                        <p class="small text-muted mb-0"><i class="bi @(Model.ProfileCompleteness >= 60 ? "bi-check-circle-fill text-success" : "bi-circle text-muted") me-2"></i> Liên kết mạng xã hội</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p class="small text-muted mb-0"><i class="bi @(Model.ProfileCompleteness >= 80 ? "bi-check-circle-fill text-success" : "bi-circle text-muted") me-2"></i> Đã có Portfolio</p>
+                        <p class="small text-muted mb-0"><i class="bi @(Model.ProfileCompleteness >= 100 ? "bi-check-circle-fill text-success" : "bi-circle text-muted") me-2"></i> Đã thiết lập bảng giá</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <div class="lux-surface p-4" data-reveal="fade-up">
+                <div class="d-flex align-items-center justify-content-between mb-4">
+                    <h5 class="lux-h2 mb-0">Yêu cầu hợp tác gần đây</h5>
+                    <a asp-controller="Booking" asp-action="ManageBookings" class="lux-link small">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+                </div>
+                @if (Model.RecentBookingRequests.Any())
+                {
+                    @foreach (var req in Model.RecentBookingRequests)
+                    {
+                        <div class="d-flex align-items-center gap-3 py-3 border-bottom last-child-border-0">
+                            <div class="flex-shrink-0">
+                                <i class="bi @(req.Status == "sent" ? "bi-envelope-exclamation-fill text-warning" : req.Status == "accepted" ? "bi-check-circle-fill text-success" : "bi-x-circle-fill text-danger") fs-4"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <h6 class="mb-0 fw-bold text-truncate">@req.Title</h6>
+                                <p class="small text-muted mb-0">@req.CustomerName
+                                    @if (req.BudgetMin.HasValue)
+                                    {
+                                        <span>• @req.BudgetMin.Value.ToString("N0") VND</span>
+                                    }
+                                </p>
+                                <span class="small text-muted">@req.CreatedAt.ToString("HH:mm, dd/MM")</span>
+                            </div>
+                            <div class="flex-shrink-0 d-flex flex-column align-items-end gap-1">
+                                <span class="badge @(req.Status == "sent" ? "bg-warning text-dark" : req.Status == "accepted" ? "bg-success" : req.Status == "active_contract" ? "bg-primary" : "bg-secondary") rounded-pill" style="font-size: 0.65rem;">
+                                    @(req.Status == "sent" ? "Chờ duyệt" : req.Status == "accepted" ? "Đã chấp nhận" : req.Status == "active_contract" ? "Đang hợp tác" : req.Status == "rejected" ? "Từ chối" : req.Status)
+                                </span>
+                                @if (req.Status == "sent")
+                                {
+                                    <a asp-controller="Booking" asp-action="RequestDetail" asp-route-id="@req.Id" class="btn btn-sm btn-dark mt-1" style="font-size: 0.7rem; padding: 2px 10px;">Chi tiết</a>
+                                }
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted text-center py-4 mb-0">Chưa có yêu cầu mới nào.</p>
+                }
+            </div>
+        </div>
+
+        <!-- Right Sidebar Column -->
+        <div class="col-lg-4">
+            <!-- Sidebar Bento Grid -->
+            <div class="d-flex flex-column gap-4">
+                <!-- Upcoming Meetings -->
+                <div class="lux-surface p-4" data-reveal="fade-left">
+                    <h5 class="lux-h2 mb-3">Lịch hẹn sắp tới</h5>
+                    @if (Model.UpcomingMeetings.Any())
+                    {
+                        @foreach (var meeting in Model.UpcomingMeetings)
+                        {
+                            <div class="d-flex gap-3 mb-3 pb-3 border-bottom last-child-border-0">
+                                <div class="text-center rounded flex-shrink-0" style="background: var(--lux-bg-stone); padding: 5px 10px; min-width: 50px;">
+                                    <div class="fw-bold" style="color: var(--lux-accent-gold);">@meeting.StartTime.ToString("dd")</div>
+                                    <div class="small text-muted" style="font-size: 10px;">THG @meeting.StartTime.ToString("M")</div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0 fw-bold text-truncate" style="max-width: 180px;">@meeting.Title</h6>
+                                    <p class="small text-muted mb-0">@meeting.StartTime.ToString("HH:mm") - @meeting.EndTime.ToString("HH:mm")</p>
+                                    @if (!string.IsNullOrEmpty(meeting.MeetingUrl))
+                                    {
+                                        <a href="@meeting.MeetingUrl" target="_blank" class="small" style="color: var(--lux-accent-gold);"><i class="bi bi-camera-video me-1"></i>Tham gia</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted small text-center py-2 mb-3">Không có lịch hẹn nào sắp tới.</p>
+                    }
+                    <a asp-controller="Meeting" asp-action="Availability" class="btn btn-link w-100 text-decoration-none text-muted small p-0">Quản lý lịch rảnh <i class="bi bi-calendar3 ms-2"></i></a>
+                </div>
+
+                <!-- Recent Activities -->
+                <div class="lux-surface p-4" data-reveal="fade-left">
+                    <h5 class="lux-h2 mb-4">Hoạt động</h5>
+                    <div class="activity-timeline">
+                        @if (Model.RecentActivities.Any())
+                        {
+                            @foreach (var activity in Model.RecentActivities)
+                            {
+                                <div class="activity-item d-flex gap-3 mb-4 last-child-mb-0">
+                                    <div class="activity-icon">
+                                        <i class="bi bi-lightning-fill opacity-50 @(activity.Type == "success" ? "text-success" : activity.Type == "warning" ? "text-warning" : activity.Type == "danger" ? "text-danger" : "text-gold")"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-0 fw-bold small">
+                                            @if (!string.IsNullOrEmpty(activity.Link))
+                                            {
+                                                <a href="@activity.Link" class="text-dark text-decoration-none">@activity.Title</a>
+                                            }
+                                            else
+                                            {
+                                                @activity.Title
+                                            }
+                                        </h6>
+                                        <p class="text-muted mb-0" style="font-size: 0.8rem;">@activity.Description</p>
+                                        <span class="text-muted" style="font-size: 0.7rem;">@activity.CreatedAt.ToString("HH:mm, dd/MM")</span>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <p class="text-muted small text-center py-2 mb-0">Chưa có hoạt động nào.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Tip of the Day -->
+                <div class="bg-indigo text-white p-4 rounded-4" data-reveal="fade-left">
+                    <i class="bi bi-lightbulb text-gold fs-3 d-block mb-3"></i>
+                    <h6 class="fw-bold mb-2">Mẹo tăng thu nhập</h6>
+                    <p class="small opacity-75 mb-0">Cập nhật Portfolio thường xuyên giúp tăng cơ hội được các brand cao cấp chú ý lên 45%.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .activity-timeline { position: relative; }
+    .last-child-mb-0:last-child { margin-bottom: 0 !important; }
+    .last-child-border-0:last-child { border-bottom: none !important; }
+    .backdrop-blur { backdrop-filter: blur(10px); }
+    .min-width-0 { min-width: 0; }
+</style>

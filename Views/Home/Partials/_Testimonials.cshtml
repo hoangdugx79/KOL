@@ -1,0 +1,49 @@
+@model List<KOL_KOC_TAAA.ViewModels.TestimonialViewModel>
+
+<section class="lux-testimonials py-5 bg-stone-light" style="background: #fdfdfd;">
+    <div class="container py-5">
+        <div class="text-center mb-5" data-reveal="fade-up">
+            <h6 class="text-uppercase fw-bold text-muted small ls-2 mb-2">Đánh giá thực tế</h6>
+            <h2 class="display-5 fw-bold lux-h1">Brand & KOL <span class="text-indigo">Nói gì về chúng tôi?</span></h2>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            @foreach (var t in Model)
+            {
+                <div class="col-lg-5" data-reveal="fade-up">
+                    <div class="testimonial-card p-4 p-xl-5 bg-white border h-100">
+                        <i class="bi bi-quote display-3 opacity-10 text-gold mb-n4 d-block"></i>
+                        <p class="fs-5 mb-4 position-relative" style="line-height: 1.6; font-style: italic; color: var(--lux-text-dim);">
+                            "@t.Content"
+                        </p>
+                        <hr class="opacity-10 my-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="testi-avatar" style="width: 50px; height: 50px; border-radius: 50%; overflow: hidden;">
+                                <img src="@(t.AvatarUrl ?? "https://ui-avatars.com/api/?name=" + @t.Name)" alt="@t.Name" class="w-100 h-100 object-fit-cover">
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">@t.Name</h6>
+                                <span class="text-muted small">@t.Role</span>
+                            </div>
+                            <div class="ms-auto">
+                                @for(int i=0; i<t.Rating; i++){ <i class="bi bi-star-fill text-gold small"></i> }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    .testimonial-card {
+        border-radius: 30px;
+        transition: all 0.3s ease;
+        border-color: rgba(0,0,0,0.05) !important;
+    }
+    .testimonial-card:hover {
+        border-color: var(--lux-accent-gold) !important;
+        transform: translateY(-5px);
+    }
+</style>

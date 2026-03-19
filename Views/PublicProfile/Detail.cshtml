@@ -1,0 +1,73 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+@{
+    ViewData["Title"] = Model.FullName + " - Hồ sơ KOL chuyên nghiệp";
+    Layout = "_LayoutLuxury";
+}
+
+<!-- 1. PROFILE HEADER -->
+@await Html.PartialAsync("Partials/_ProfileHeader", Model)
+
+<div class="container py-5">
+    <div class="row g-5">
+        <!-- LEFT COLUMN: MAIN CONTENT -->
+        <div class="col-lg-8">
+            <!-- About Section -->
+            <section class="lux-profile-section mb-5" data-reveal="fade-up">
+                <h5 class="fw-bold text-indigo mb-3">Về tôi</h5>
+                <div class="lux-bio-text lead fs-6" style="line-height: 1.8; color: var(--lux-text-body);">
+                    @Model.Bio
+                </div>
+            </section>
+
+            <!-- Social Stats -->
+            <section class="lux-profile-section mb-5">
+                @await Html.PartialAsync("Partials/_ProfileSocialStats", Model.SocialAccounts)
+            </section>
+
+            <!-- Portfolio -->
+            <section class="lux-profile-section mb-5">
+                @await Html.PartialAsync("Partials/_ProfilePortfolio", Model.Portfolios)
+            </section>
+
+            <!-- Services / Rate Card -->
+            <section class="lux-profile-section mb-5">
+                @await Html.PartialAsync("Partials/_ProfileServices", Model.RateCards)
+            </section>
+        </div>
+
+        <!-- RIGHT COLUMN: SIDEBAR (ACTION BOX) -->
+        <div class="col-lg-4">
+            <div class="sticky-sidebar" style="top: 100px;">
+                @await Html.PartialAsync("Partials/_ProfileActionBox", Model)
+                
+                <!-- Extra Context Card -->
+                <div class="mt-4 p-4 border rounded-4 bg-stone text-muted small">
+                    <h6 class="fw-bold text-dark mb-2">Lưu ý nhỏ</h6>
+                    <ul class="ps-3 mb-0">
+                        <li>Giá trên là chi phí dự kiến, có thể thay đổi tùy brief.</li>
+                        <li>Phản hồi qua hệ thống chat nhanh nhất.</li>
+                        <li>Mọi giao dịch qua sàn đều được bảo vệ Escrow.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPTS FOR REVEAL ANIMATION (Used in Index too, consider shared script) -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const revealItems = document.querySelectorAll('[data-reveal]');
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const el = entry.target;
+                    const delay = parseInt(el.getAttribute('data-delay')) || 0;
+                    setTimeout(() => { el.classList.add('revealed'); }, delay);
+                    revealObserver.unobserve(el);
+                }
+            });
+        }, { threshold: 0.1 });
+        revealItems.forEach(el => revealObserver.observe(el));
+    });
+</script>

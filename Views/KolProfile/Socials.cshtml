@@ -1,0 +1,107 @@
+@model IEnumerable<KOL_KOC_TAAA.ViewModels.KolSocialAccountViewModel>
+@{
+    ViewData["Title"] = "Liên kết mạng xã hội";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="mb-4 d-flex justify-content-between align-items-end">
+    <div>
+        <h2 class="h4 fw-bold mb-1">Mạng xã hội</h2>
+        <p class="text-muted small mb-0">Liên kết các tài khoản để nhãn hàng thấy được tầm ảnh hưởng của bạn.</p>
+    </div>
+    <button class="btn btn-dark rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addSocialModal">
+        <i class="bi bi-plus-lg me-2"></i> Thêm tài khoản
+    </button>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger border-0 mb-4 rounded-4">@TempData["ErrorMessage"]</div>
+}
+
+<div class="row g-4">
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var social in Model)
+        {
+            <div class="col-md-6 col-xl-4">
+                <div class="dash-card h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 48px; height: 48px; background: #f1f5f9;">
+                                <i class="bi bi-@(social.Platform?.ToLower()) fs-4"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">@social.Platform</h6>
+                                <a href="@social.Url" target="_blank" class="small text-muted text-decoration-none">Xem hồ sơ <i class="bi bi-box-arrow-up-right ms-1" style="font-size: 0.6rem;"></i></a>
+                            </div>
+                        </div>
+                        <form asp-action="RemoveSocial" asp-route-id="@social.Id" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa liên kết này?')">
+                            <button type="submit" class="btn btn-link text-danger p-0"><i class="bi bi-trash"></i></button>
+                        </form>
+                    </div>
+                    
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small text-muted">Followers</span>
+                            <span class="fw-bold">@social.FollowersCount?.ToString("N0")</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="dash-card text-center py-5 border-dashed">
+                <i class="bi bi-share fs-1 text-muted opacity-25 mb-3 d-block"></i>
+                <h5 class="fw-bold">Chưa có tài khoản nào</h5>
+                <p class="text-muted small">Vui lòng thêm ít nhất 1 tài khoản mạng xã hội để hiển thị trên marketplace.</p>
+                <button class="btn btn-outline-dark rounded-pill px-4 mt-2" data-bs-toggle="modal" data-bs-target="#addSocialModal">Thêm ngay</button>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Add Social Modal -->
+<div class="modal fade" id="addSocialModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h5 class="modal-title fw-bold">Thêm mạng xã hội</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="AddSocial" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="lux-cap mb-2" style="font-size: 0.7rem;">Nền tảng</label>
+                        <select name="Platform" class="form-select lux-input h-auto py-2">
+                            <option value="Facebook">Facebook</option>
+                            <option value="Instagram">Instagram</option>
+                            <option value="TikTok">TikTok</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="lux-cap mb-2" style="font-size: 0.7rem;">Đường dẫn (URL)</label>
+                        <input name="Url" type="url" class="lux-input w-100" placeholder="https://..." required />
+                    </div>
+                    <div class="mb-0">
+                        <label class="lux-cap mb-2" style="font-size: 0.7rem;">Số lượng người theo dõi</label>
+                        <input name="FollowersCount" type="number" class="lux-input w-100" placeholder="50000" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-toggle="modal">Hủy</button>
+                    <button type="submit" class="lux-btn-primary px-4 py-2 border-0">Hoàn tất <i class="bi bi-check-lg ms-2"></i></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-dashed { border-style: dashed !important; border-width: 2px !important; border-color: #cbd5e1 !important; }
+</style>

@@ -1,0 +1,149 @@
+@model KOL_KOC_TAAA.Models.Booking
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Quản lý Sản phẩm";
+    Layout = "_LayoutDashboard";
+    var currentUserId = Guid.Parse(User.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)!);
+    var isKol = Model.KolUserId == currentUserId;
+}
+
+<div class="container py-4">
+    <div class="mb-4">
+        <h2 class="lux-h2">Tiến độ công việc</h2>
+        <p class="text-muted small">Đơn hàng: <span class="fw-bold text-dark">#@Model.Id.ToString()[..8].ToUpper()</span> — Đối tác: @(isKol ? Model.CustomerUser.FullName : Model.KolUser.User.FullName)</p>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <!-- Timeline/Status -->
+            <div class="dash-card p-4 mb-4 shadow-sm border-0">
+                <h5 class="fw-bold mb-4" style="font-size: 0.95rem;">Trạng thái dự án</h5>
+                <div class="d-flex justify-content-between position-relative mb-5">
+                    <div class="position-absolute top-50 start-0 end-0 translate-middle-y bg-light" style="height: 2px; z-index: 0;"></div>
+                    <div class="position-absolute top-50 start-0 bg-primary" style="height: 2px; z-index: 1; width: @(Model.Status == "approved" || Model.Status == "paid" || Model.Status == "completed" ? "100%" : Model.Status == "work_submitted" ? "66%" : "33%"); transition: width 1s ease;"></div>
+                    
+                    <div class="text-center position-relative" style="z-index: 2;">
+                        <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 30px; height: 30px;">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <span class="small d-block fw-bold">Khởi tạo</span>
+                    </div>
+                    <div class="text-center position-relative" style="z-index: 2;">
+                        <div class="rounded-circle @(Model.Status == "work_submitted" || Model.Status == "approved" || Model.Status == "paid" || Model.Status == "completed" ? "bg-primary text-white" : "bg-white border text-muted") d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 30px; height: 30px;">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+                        <span class="small d-block fw-bold">Nộp bài</span>
+                    </div>
+                    <div class="text-center position-relative" style="z-index: 2;">
+                        <div class="rounded-circle @(Model.Status == "approved" || Model.Status == "paid" || Model.Status == "completed" ? "bg-primary text-white" : "bg-white border text-muted") d-flex align-items-center justify-content-center mx-auto mb-2" style="width: 30px; height: 30px;">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <span class="small d-block fw-bold">Hoàn tất</span>
+                    </div>
+                </div>
+
+                <!-- Deliverables List -->
+                <div class="mt-4">
+                    <h6 class="fw-bold small mb-3">Danh sách sản phẩm đã nộp</h6>
+                    @if (Model.Deliverables != null && Model.Deliverables.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var dev in Model.Deliverables.OrderByDescending(d => d.CreatedAt))
+                            {
+                                <div class="list-group-item px-0 py-3 border-0 border-bottom">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <a href="@dev.Title" target="_blank" class="fw-bold text-decoration-none text-indigo small">
+                                                <i class="bi bi-link-45deg"></i> Link sản phẩm/bài viết
+                                            </a>
+                                            <p class="text-muted mb-0 mt-1" style="font-size: 0.75rem;">@dev.Description</p>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="badge rounded-pill bg-success-subtle text-success small">@dev.Status.ToUpper()</span>
+                                            <div class="text-muted mt-1" style="font-size: 0.65rem;">@dev.CreatedAt.ToString("g")</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4 bg-light rounded-3">
+                            <p class="text-muted small italic mb-0">Chưa có sản phẩm nào được nộp.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (isKol && Model.Status != "approved" && Model.Status != "paid" && Model.Status != "completed")
+            {
+                <!-- Submit Form for KOL -->
+                <div class="dash-card p-4 shadow-sm border-0">
+                    <h5 class="fw-bold mb-4" style="font-size: 0.95rem;">Nộp sản phẩm mới</h5>
+                    <form asp-action="Submit" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="bookingId" value="@Model.Id" />
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Link bài viết / Video / Sản phẩm</label>
+                            <input type="url" name="contentUrl" class="lux-input w-100" placeholder="https://..." required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Ghi chú cho Nhãn hàng</label>
+                            <textarea name="notes" class="lux-input w-100" rows="3" placeholder="Mô tả ngắn gọn công việc đã thực hiện..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-dark rounded-pill px-5 py-2 fw-bold" style="font-size: 0.8rem;">GỬI SẢN PHẨM</button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="dash-card p-4 mb-4 shadow-sm border-0">
+                <h5 class="fw-bold mb-4" style="font-size: 0.95rem;">Hành động</h5>
+                
+                @if (!isKol && Model.Status == "work_submitted")
+                {
+                    <div class="p-3 bg-indigo-subtle rounded-3 mb-4">
+                        <p class="small text-primary mb-3 fw-medium">Sản phẩm đã được nộp! Vui lòng kiểm tra kỹ trước khi nghiệm thu.</p>
+                        <form asp-action="Approve" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" style="font-size: 0.8rem;" onclick="return confirm('Bạn xác nhận nghiệm thu? Sau bước này, bạn sẽ cần thanh toán để hoàn tất đơn hàng.')">
+                                NGHIỆM THU SẢN PHẨM
+                            </button>
+                        </form>
+                    </div>
+                }
+
+                <div class="d-grid gap-2">
+                    <a asp-controller="Chat" asp-action="Index" class="btn btn-outline-dark btn-sm rounded-pill text-start px-3">
+                        <i class="bi bi-chat-dots me-2"></i> Chat trao đổi
+                    </a>
+                    <a asp-controller="Contract" asp-action="Details" asp-route-id="@(Model.Contracts.OrderByDescending(c => c.Version).FirstOrDefault()?.Id)" class="btn btn-outline-dark btn-sm rounded-pill text-start px-3">
+                        <i class="bi bi-file-earmark-text me-2"></i> Xem hợp đồng
+                    </a>
+                </div>
+            </div>
+
+            <div class="dash-card p-4 shadow-sm border-0">
+                <h5 class="fw-bold mb-3" style="font-size: 0.85rem;">Chi tiết thanh toán</h5>
+                <div class="d-flex justify-content-between mb-2 small text-muted">
+                    <span>Trạng thái tiền:</span>
+                    <span class="text-indigo fw-bold">@Model.Status.ToUpper()</span>
+                </div>
+                <div class="d-flex justify-content-between small">
+                    <span>Tổng ngân sách:</span>
+                    <span class="fw-bold">@Model.TotalAmount.ToString("N0") @Model.Currency</span>
+                </div>
+                <hr class="opacity-10">
+                <p class="mb-0 italic text-muted" style="font-size: 0.65rem;">Hệ thống đảm bảo an toàn cho cả hai bên thông qua cơ chế Escrow.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-indigo { color: var(--lux-primary-indigo); }
+    .bg-indigo-subtle { background: rgba(79, 70, 229, 0.1); }
+</style>

@@ -1,0 +1,119 @@
+@model IEnumerable<KOL_KOC_TAAA.Models.KolProfile>
+@{
+    ViewData["Title"] = "Quản lý cộng đồng KOLs";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-5">
+    <div>
+        <h3 class="fw-bold mb-1">Quản lý Influencers</h3>
+        <p class="text-muted small mb-0">Phê duyệt và quản lý các hồ sơ KOL trên hệ thống</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-white border rounded-pill px-4 shadow-sm"><i class="bi bi-download me-2"></i>Xuất file</button>
+        <a asp-action="Create" class="btn btn-primary btn-pill px-4 shadow-premium"><i class="bi bi-plus-lg me-2"></i>Thêm KOL</a>
+    </div>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-0 shadow-sm rounded-4 mb-4 py-3 animate-fade-in" role="alert">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+            <div>@TempData["SuccessMessage"]</div>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="glass-card-admin border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="text-muted small text-uppercase letter-spacing-1">
+                    <th class="border-0 pb-3">Thông tin KOL</th>
+                    <th class="border-0 pb-3">Hạng / Loại</th>
+                    <th class="border-0 pb-3">Khu vực</th>
+                    <th class="border-0 pb-3">Đánh giá</th>
+                    <th class="border-0 pb-3">Xác thực</th>
+                    <th class="border-0 pb-3 text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var k in Model)
+                {
+                    <tr>
+                        <td class="py-4 border-0">
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(k.User.FullName)&background=random" class="rounded-circle me-3" style="width: 45px; height: 45px;">
+                                <div>
+                                    <div class="fw-bold mb-0">@k.User.FullName</div>
+                                    <div class="text-muted x-small">@k.User.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 border-0">
+                            <span class="badge rounded-pill bg-primary-light text-primary px-3 py-2">
+                                @k.InfluencerType
+                            </span>
+                        </td>
+                        <td class="py-4 border-0">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-geo-alt-fill text-danger me-2 opacity-50"></i>
+                                <span>@k.LocationCity</span>
+                            </div>
+                        </td>
+                        <td class="py-4 border-0">
+                            <div class="fw-bold text-warning">
+                                ⭐ @k.RatingAvg <span class="text-muted small fw-normal">(@k.RatingCount)</span>
+                            </div>
+                        </td>
+                        <td class="py-4 border-0">
+                            @if (k.IsVerified)
+                            {
+                                <span class="badge rounded-pill px-3 py-2" style="background-color: #ecfdf5; color: #10b981;">
+                                    <i class="bi bi-patch-check-fill me-1"></i> Đã duyệt
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill px-3 py-2" style="background-color: #f1f5f9; color: #64748b;">
+                                    Đang chờ
+                                </span>
+                            }
+                        </td>
+                        <td class="py-4 border-0 text-end">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a asp-area="" asp-controller="Home" asp-action="KolDetail" asp-route-id="@k.UserId" target="_blank" class="btn btn-sm btn-light rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Xem hồ sơ">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@k.UserId" class="btn btn-sm btn-light rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center text-primary" style="width: 34px; height: 34px;" title="Chỉnh sửa">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form asp-action="ToggleVerify" method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@k.UserId" />
+                                    <button type="submit" class="btn btn-sm rounded-pill px-3 @(k.IsVerified ? "btn-outline-danger" : "btn-primary shadow-sm")">
+                                        @(k.IsVerified ? "Hủy duyệt" : "Duyệt ngay")
+                                    </button>
+                                </form>
+                                <form asp-action="Delete" asp-route-id="@k.UserId" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn khóa KOL này? Toàn bộ hồ sơ sẽ bị ẩn khỏi hệ thống.');">
+                                    <button type="submit" class="btn btn-sm btn-light text-danger rounded-circle shadow-sm p-0 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="Khóa/Xóa">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="text-muted">Không tìm thấy KOL nào trong danh sách.</div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

@@ -1,0 +1,84 @@
+@model IEnumerable<KOL_KOC_TAAA.Models.PayoutRequest>
+@{
+    ViewData["Title"] = "Phê duyệt rút tiền";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="mb-4">
+    <h2 class="h4 fw-bold mb-1">Yêu cầu rút tiền</h2>
+    <p class="text-muted small">Phê duyệt và giải ngân thu nhập cho người dùng.</p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success border-0 mb-4 rounded-4 small">@TempData["SuccessMessage"]</div>
+}
+
+<div class="dash-card p-0 overflow-hidden shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light border-bottom">
+                <tr class="lux-cap text-muted" style="font-size: 0.65rem;">
+                    <th class="ps-4 py-3">Người yêu cầu</th>
+                    <th class="py-3">Số tiền</th>
+                    <th class="py-3">Thông tin ngân hàng</th>
+                    <th class="py-3">Trạng thái</th>
+                    <th class="py-3">Thời gian</th>
+                    <th class="py-3 text-end pe-4">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold small">@item.User?.FullName</div>
+                                <div class="text-muted" style="font-size: 0.65rem;">@item.User?.Email</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold">@item.Amount.ToString("N0") <small class="text-muted">@item.Currency</small></div>
+                            </td>
+                            <td class="small text-muted" style="max-width: 250px;">@item.BankInfoJson</td>
+                            <td>
+                                @{
+                                    var badgeClass = item.Status switch {
+                                        "pending" => "bg-warning-subtle text-warning",
+                                        "completed" => "bg-success-subtle text-success",
+                                        "rejected" => "bg-danger-subtle text-danger",
+                                        _ => "bg-light text-muted"
+                                    };
+                                }
+                                <span class="badge rounded-pill @badgeClass px-3 py-1" style="font-size: 0.6rem; font-weight: 700;">@item.Status.ToUpper()</span>
+                            </td>
+                            <td class="small text-muted">@item.CreatedAt.ToString("HH:mm dd/MM/yyyy")</td>
+                            <td class="text-end pe-4">
+                                @if (item.Status == "pending")
+                                {
+                                    <form asp-action="ApprovePayout" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="btn btn-dark btn-sm rounded-pill px-4" style="font-size: 0.7rem;">Phê duyệt</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-light btn-sm rounded-pill px-3 disabled" style="font-size: 0.7rem;">Đã xử lý</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <p class="text-muted small italic">Chưa có yêu cầu rút tiền nào cần xử lý.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,70 @@
+@model KOL_KOC_TAAA.ViewModels.SubmitReviewViewModel
+@{
+    ViewData["Title"] = "Đánh giá KOL";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header bg-warning text-dark text-center py-3">
+                    <h5 class="mb-0 fw-bold">Đánh giá trải nghiệm của bạn</h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="text-center mb-4">
+                        <p class="text-muted">Bạn đã hoàn thành đơn hàng với</p>
+                        <h4 class="fw-bold">@Model.KolName</h4>
+                    </div>
+
+                    <form asp-action="Submit" method="post">
+                        <input type="hidden" asp-for="BookingId" />
+                        <input type="hidden" asp-for="KolName" />
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-4 text-center">
+                            <label class="form-label d-block fw-bold mb-3">Điểm đánh giá</label>
+                            <div class="star-rating fs-2">
+                                @for (int i = 5; i >= 1; i--)
+                                {
+                                    <input type="radio" name="Rating" value="@i" id="star@i" @(Model.Rating == i ? "checked" : "") />
+                                    <label for="star@i" title="@i sao">★</label>
+                                }
+                            </div>
+                            <span asp-validation-for="Rating" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-4">
+                            <label asp-for="Comment" class="form-label fw-bold"></label>
+                            <textarea asp-for="Comment" class="form-control" rows="4" placeholder="Hãy chia sẻ cảm nhận của bạn về chất lượng công việc, thái độ và sự chuyên nghiệp..."></textarea>
+                            <span asp-validation-for="Comment" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning btn-lg fw-bold">Gửi đánh giá</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: center;
+    }
+    .star-rating input { display: none; }
+    .star-rating label {
+        color: #ddd;
+        cursor: pointer;
+        padding: 0 5px;
+        transition: color 0.2s;
+    }
+    .star-rating input:checked ~ label,
+    .star-rating label:hover,
+    .star-rating label:hover ~ label {
+        color: #f39c12;
+    }
+</style>

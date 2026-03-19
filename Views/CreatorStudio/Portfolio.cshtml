@@ -1,0 +1,85 @@
+@model List<KOL_KOC_TAAA.Models.KolPortfolio>
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Quản lý Portfolio - Creator Studio";
+}
+
+<div class="container py-5">
+    <div class="mb-5" data-reveal="fade-up">
+        <a asp-action="Index" class="lux-link small mb-3 d-inline-block"><i class="bi bi-arrow-left me-1"></i> Quay lại Dashboard</a>
+        <h1 class="lux-h1">Quản lý <span class="text-gradient-gold">Portfolio</span></h1>
+        <p class="text-muted">Nơi trình diễn những dự án và nội dung ấn tượng nhất của bạn.</p>
+    </div>
+
+    <!-- Add New Item Section -->
+    <div class="lux-surface p-4 mb-5" data-reveal="fade-up">
+        <h5 class="lux-h2 mb-4">Thêm tác phẩm mới</h5>
+        <form asp-action="AddPortfolio" method="post" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div class="col-md-4">
+                <label class="lux-cap mb-2 d-block">Tiêu đề dự án</label>
+                <input name="Title" class="lux-input w-100" required placeholder="e.g. Campaign Summer 2024">
+            </div>
+            <div class="col-md-5">
+                <label class="lux-cap mb-2 d-block">Link Media (URL)</label>
+                <input name="MediaUrl" class="lux-input w-100" placeholder="e.g. Link ảnh hoặc video">
+            </div>
+            <div class="col-md-3">
+                <label class="lux-cap mb-2 d-block">&nbsp;</label>
+                <button type="submit" class="lux-btn-primary w-100">THÊM VÀO GALLERY</button>
+            </div>
+            <div class="col-12">
+                <label class="lux-cap mb-2 d-block">Mô tả ngắn</label>
+                <textarea name="Description" class="lux-input w-100" rows="2" placeholder="Nội dung bạn đã thực hiện trong dự án này..."></textarea>
+            </div>
+        </form>
+    </div>
+
+    <!-- Gallery Grid -->
+    <div class="row g-4" data-reveal="fade-up">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="col-md-4">
+                    <div class="lux-surface overflow-hidden h-100 group position-relative">
+                        <div class="ratio ratio-4x3 bg-light overflow-hidden">
+                            @if (!string.IsNullOrEmpty(item.MediaUrl))
+                            {
+                                <img src="@item.MediaUrl" class="object-fit-cover transition-transform" style="transition: transform 0.6s ease;" alt="@item.Title">
+                            }
+                            else
+                            {
+                                <div class="d-flex align-items-center justify-content-center text-muted opacity-25">
+                                    <i class="bi bi-image fs-1"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="p-4">
+                            <h6 class="fw-bold mb-1">@item.Title</h6>
+                            <p class="text-muted small mb-3">@item.Description</p>
+                            <div class="d-flex align-items-center justify-content-between pt-3 border-top">
+                                <span class="small text-muted"><i class="bi bi-calendar-event me-1"></i> @item.CreatedAt.ToString("dd/MM/yyyy")</span>
+                                <form asp-action="DeletePortfolio" method="post" onsubmit="return confirm('Bạn có chắc muốn xóa tác phẩm này?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" class="btn btn-link text-danger p-0 small text-decoration-none">Xóa</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">Bạn chưa có tác phẩm nào trong Portfolio. Hãy bắt đầu thêm ngay!</p>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .group:hover img { transform: scale(1.05); }
+</style>

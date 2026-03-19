@@ -1,0 +1,84 @@
+@using Microsoft.AspNetCore.Http
+<div class="container mt-4 mb-5">
+    <div class="lux-bento-grid-hero d-grid gap-3" style="grid-template-columns: repeat(12, 1fr); grid-auto-rows: minmax(100px, auto);">
+        
+        <!-- Main Hero Card (Large) -->
+        <div class="lux-bento-item border-0 lux-hover-lift" style="grid-column: span 8; grid-row: span 4; background: #fff; border: 1px solid rgba(0,0,0,0.06) !important;">
+            <div class="h-100 p-5 d-flex flex-column justify-content-center position-relative">
+                <!-- Subtle Zen Graphic -->
+                <div class="position-absolute bottom-0 end-0 opacity-10 p-5" style="pointer-events: none;">
+                    <svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="100" cy="100" r="80" stroke="currentColor" stroke-width="0.5" />
+                        <circle cx="100" cy="100" r="40" stroke="currentColor" stroke-width="0.5" />
+                    </svg>
+                </div>
+
+                <div class="lux-cap mb-3">Professional Discovery</div>
+                <h1 class="lux-h1 mb-4" style="font-size: 3.5rem;">
+                    Nơi Hội Tụ Những<br>
+                    <span style="color: var(--lux-accent-gold); font-family: 'Playfair Display', serif; font-style: italic; font-weight: 400;">Tài Năng</span> Tinh Tuyển.
+                </h1>
+                <p class="lux-body-text fs-5 mb-5" style="max-width: 520px; line-height: 1.5;">
+                    Kết nối thương hiệu cùng các nhà sáng tạo dẫn đầu xu hướng thông qua phương thức tiếp cận dựa trên dữ liệu và thẩm mỹ chuẩn mực.
+                </p>
+
+                <!-- Minimal Premium Search -->
+                <div class="d-flex align-items-center p-1 rounded-pill" style="max-width: 580px; background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.05);">
+                    <div class="flex-grow-1 ps-4 d-flex align-items-center">
+                        <i class="bi bi-search text-muted me-3"></i>
+                        <input type="text" class="border-0 bg-transparent w-100 py-3 shadow-none" placeholder="Tìm kiếm phong cách, tên creator..." style="font-size: 0.95rem; outline: none;">
+                    </div>
+                    <button class="lux-btn-primary rounded-pill px-4 py-3 ms-2">
+                        Tìm kiếm ngay
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Featured Stat Card -->
+        <div class="lux-bento-item border-0 d-flex flex-column justify-content-between p-4 px-5" style="grid-column: span 4; grid-row: span 2; background: var(--lux-primary-indigo); color: white;">
+            <div class="d-flex justify-content-between align-items-start">
+                <span class="lux-cap text-white opacity-50">Market Metrics</span>
+                <i class="bi bi-arrow-up-right fs-4 opacity-50"></i>
+            </div>
+            <div>
+                <div class="display-5 fw-bold mb-1">5.2K+</div>
+                <div class="small opacity-75 fw-medium">Creators đã xác thực hoàn toàn</div>
+            </div>
+            <div class="pt-3 border-top border-white border-opacity-10 mt-3">
+                <a href="#" class="text-white text-decoration-none small d-flex align-items-center gap-2">
+                    Xem báo cáo tăng trưởng <i class="bi bi-chevron-right" style="font-size: 0.7rem;"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Trending Now Card -->
+        <div class="lux-bento-item border-0 p-4" style="grid-column: span 4; grid-row: span 2; background: #fff; border: 1px solid rgba(0,0,0,0.06) !important;">
+            <div class="lux-cap mb-4">Trending Tags</div>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge rounded-pill px-3 py-2 fw-medium text-dark" style="background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;">#LuxuryFashion</span>
+                <span class="badge rounded-pill px-3 py-2 fw-medium text-dark" style="background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;">#SkincareExpert</span>
+                <span class="badge rounded-pill px-3 py-2 fw-medium text-dark" style="background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;">#MinimalistHome</span>
+                <span class="badge rounded-pill px-3 py-2 fw-medium text-dark" style="background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;">#TechReview</span>
+                <span class="badge rounded-pill px-3 py-2 fw-medium text-dark" style="background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.04); font-size: 0.8rem;">#GenZTravel</span>
+            </div>
+            <div class="mt-4 pt-3 border-top border-light">
+                <div class="small text-muted fst-italic">“Sự sang trọng bắt đầu từ sự tinh giản.”</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .lux-bento-grid-hero {
+        grid-template-rows: repeat(4, 1fr);
+    }
+    @@media (max-width: 992px) {
+        .lux-bento-grid-hero {
+            display: flex !important;
+            flex-direction: column;
+        }
+        .lux-bento-item { min-height: 300px; }
+    }
+</style>

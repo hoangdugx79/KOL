@@ -1,0 +1,69 @@
+@model KOL_KOC_TAAA.ViewModels.PlatformStatsViewModel
+
+<section class="lux-stats py-5 bg-white">
+    <div class="container py-4">
+        <div class="row g-4 text-center">
+            <div class="col-md-3" data-reveal="fade-up">
+                <div class="lux-stat-card p-4">
+                    <div class="lux-stat-number" data-count="@Model.ActiveKols">0</div>
+                    <div class="lux-stat-label">KOL/KOC Active</div>
+                    <p class="small text-muted mt-2">Tài năng đã xác thực hồ sơ</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-reveal="fade-up" data-delay="100">
+                <div class="lux-stat-card p-4">
+                    <div class="lux-stat-number" data-count="@Model.CompletedCampaigns">0</div>
+                    <div class="lux-stat-label">Chiến dịch hoàn tất</div>
+                    <p class="small text-muted mt-2">Đã được nghiệm thu & giải ngân</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-reveal="fade-up" data-delay="200">
+                <div class="lux-stat-card p-4">
+                    <div class="lux-stat-number" data-count="98">0</div>
+                    <div class="lux-stat-label">% Tỉ lệ phản hồi</div>
+                    <p class="small text-muted mt-2">Trung bình trong 2 giờ</p>
+                </div>
+            </div>
+            <div class="col-md-3" data-reveal="fade-up" data-delay="300">
+                <div class="lux-stat-card p-4">
+                    <div class="lux-stat-number">@Model.TotalReach</div>
+                    <div class="lux-stat-label">Lượt tiếp cận</div>
+                    <p class="small text-muted mt-2">Tổng impressions hàng tháng</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Simple count-up script using IntersectionObserver
+    document.addEventListener('DOMContentLoaded', () => {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = entry.target;
+                    const countTo = parseInt(target.getAttribute('data-count'));
+                    if (isNaN(countTo)) return;
+                    
+                    let count = 0;
+                    const duration = 2000;
+                    const increment = countTo / (duration / 16);
+                    
+                    const updateCount = () => {
+                        count += increment;
+                        if (count < countTo) {
+                            target.innerText = Math.floor(count).toLocaleString();
+                            requestAnimationFrame(updateCount);
+                        } else {
+                            target.innerText = countTo.toLocaleString();
+                        }
+                    };
+                    updateCount();
+                    observer.unobserve(target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.lux-stat-number[data-count]').forEach(el => observer.observe(el));
+    });
+</script>

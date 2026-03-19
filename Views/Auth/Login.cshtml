@@ -1,0 +1,101 @@
+@model KOL_KOC_TAAA.ViewModels.LoginViewModel
+@{
+    ViewData["Title"] = "Đăng Nhập | Luxury KOL Marketplace";
+    Layout = "_LayoutLuxury";
+}
+
+<div class="lux-auth-wrapper min-vh-100 d-flex align-items-center justify-content-center p-3" style="background: var(--lux-bg-ivory);">
+    <div class="lux-auth-container row g-0 shadow-lg overflow-hidden" style="max-width: 900px; width: 100%; border-radius: 24px; background: white;">
+        
+        <!-- Left Side: Editorial & Inspiration -->
+        <div class="col-md-5 d-none d-md-block position-relative" style="background: var(--lux-primary-indigo);">
+            <div class="h-100 w-100 p-5 d-flex flex-column justify-content-between text-white border-end" style="border-color: rgba(255,255,255,0.1) !important;">
+                <div>
+                    <h2 class="lux-h1 text-white mb-4" style="font-size: 2.2rem;">Khai mở tầm vóc <span style="font-family: serif; font-style: italic;">thương hiệu</span>.</h2>
+                    <p class="opacity-75" style="line-height: 1.6;">Nơi hội tụ những nhà sáng tạo tinh hoa nhất, sẵn sàng kết nối và lan tỏa giá trị thực.</p>
+                </div>
+                
+                <div class="lux-surface p-4 border-0" style="background: rgba(255,255,255,0.05); backdrop-filter: blur(10px);">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <i class="bi bi-quote fs-2" style="color: var(--lux-accent-gold);"></i>
+                    </div>
+                    <p class="small mb-0 italic">"Nền tảng giúp tôi tìm thấy những đối tác KOL thực sự hiểu giá trị cốt lõi của sản phẩm."</p>
+                    <div class="mt-3 small fw-bold text-white">— Marketing Director, LuxBrands</div>
+                </div>
+            </div>
+            <!-- Subtle Overlay Graphics -->
+            <div class="position-absolute bottom-0 end-0 p-4 opacity-25">
+                <i class="bi bi-stars" style="font-size: 8rem;"></i>
+            </div>
+        </div>
+
+        <!-- Right Side: Login Form -->
+        <div class="col-md-7 p-4 p-lg-5 d-flex flex-column justify-content-center">
+            <div class="mb-5 text-center text-md-start">
+                <a href="/" class="d-inline-block mb-4 text-decoration-none">
+                    <span class="fs-3 fw-bold tracking-tighter" style="color: var(--lux-primary-indigo); font-family: 'Outfit', sans-serif;">
+                        KOL<span style="color: var(--lux-accent-gold);">MARKT</span>
+                    </span>
+                </a>
+                <h2 class="lux-h2 mb-2">Chào mừng trở lại</h2>
+                <p class="text-muted small">Hãy đăng nhập để tiếp tục hành trình sáng tạo của bạn.</p>
+            </div>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success border-0 rounded-pill px-4 mb-4 small" style="background: #e6f4ea; color: #1e4620;">
+                    <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                </div>
+            }
+
+            <form asp-action="Login" method="post" class="lux-form mt-2">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                
+                <div class="mb-4">
+                    <label asp-for="Email" class="form-label lux-cap mb-2" style="font-size: 0.75rem;">Địa chỉ Email</label>
+                    <div class="position-relative">
+                        <input asp-for="Email" class="lux-input w-100" placeholder="name@company.com" />
+                        <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="d-flex justify-content-between">
+                        <label asp-for="Password" class="form-label lux-cap mb-2" style="font-size: 0.75rem;">Mật khẩu</label>
+                        <a href="#" class="small text-muted text-decoration-none hover-gold transition-all">Quên mật khẩu?</a>
+                    </div>
+                    <div class="position-relative">
+                        <input asp-for="Password" type="password" class="lux-input w-100" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4 form-check d-flex align-items-center gap-2">
+                    <input type="checkbox" class="form-check-input mt-0" id="rememberMe" style="width: 18px; height: 18px; cursor: pointer;">
+                    <label class="form-check-label small text-muted pt-1" for="rememberMe" style="cursor: pointer;">Ghi nhớ đăng nhập</label>
+                </div>
+
+                <button type="submit" class="lux-btn-primary w-100 py-3 mt-2">
+                    Đăng Nhập Ngay <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+
+                <div class="text-center mt-5 pt-3 border-top">
+                    <p class="small text-muted mb-0">Chưa có tài khoản? <a asp-action="Register" class="fw-bold text-decoration-none" style="color: var(--lux-primary-indigo);">Đăng ký thành viên</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lux-auth-wrapper {
+        background-image: radial-gradient(circle at 10% 20%, rgba(212, 175, 55, 0.05) 0%, transparent 40%),
+                          radial-gradient(circle at 90% 80%, rgba(26, 35, 126, 0.03) 0%, transparent 40%);
+    }
+    .lux-auth-container {
+        border: 1px solid rgba(0,0,0,0.05);
+        transition: transform 0.6s var(--lux-ease), box-shadow 0.6s var(--lux-ease);
+    }
+    .hover-gold:hover { color: var(--lux-accent-gold) !important; }
+    .transition-all { transition: all 0.3s ease; }
+</style>

@@ -1,0 +1,132 @@
+@model IEnumerable<KOL_KOC_TAAA.Models.Booking>
+@{
+    ViewData["Title"] = "Bảng điều khiển hệ thống";
+}
+
+<div class="row g-4 mb-5">
+    <!-- Thẻ thống kê Người dùng -->
+    <div class="col-md-3">
+        <div class="glass-card-admin h-100 border-0 shadow-sm transition hover-lift py-4">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-primary-light p-3 rounded-pill text-primary">
+                    <i class="bi bi-people-fill fs-3"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Người dùng</h6>
+                    <h3 class="mb-0 fw-bold">@ViewBag.TotalUsers</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Thẻ thống kê KOLs -->
+    <div class="col-md-3">
+        <div class="glass-card-admin h-100 border-0 shadow-sm transition hover-lift py-4">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-success-subtle p-3 rounded-pill text-success" style="background-color: #ecfdf5 !important;">
+                    <i class="bi bi-patch-check-fill fs-3"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">KOLs Hoạt động</h6>
+                    <h3 class="mb-0 fw-bold">@ViewBag.TotalKols</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thẻ thống kê Bookings -->
+    <div class="col-md-3">
+        <div class="glass-card-admin h-100 border-0 shadow-sm transition hover-lift py-4">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-warning-subtle p-3 rounded-pill text-warning" style="background-color: #fffbeb !important;">
+                    <i class="bi bi-calendar-check-fill fs-3"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Tổng Bookings</h6>
+                    <h3 class="mb-0 fw-bold">@ViewBag.TotalBookings</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thẻ thống kê Doanh thu -->
+    <div class="col-md-3">
+        <div class="glass-card-admin h-100 border-0 shadow-sm transition hover-lift py-4">
+            <div class="d-flex align-items-center">
+                <div class="flex-shrink-0 bg-danger-subtle p-3 rounded-pill text-danger" style="background-color: #fff1f2 !important;">
+                    <i class="bi bi-graph-up-arrow fs-3"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1" style="letter-spacing: 0.5px;">Doanh thu sàn</h6>
+                    <h3 class="mb-0 fw-bold">@(((decimal)ViewBag.PlatformRevenue).ToString("N0"))</h3>
+                    <small class="text-muted fw-semibold">VND</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="glass-card-admin border-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Hoạt động Booking gần đây</h5>
+        <button class="btn btn-sm btn-light rounded-pill px-3">Xem báo cáo chi tiết</button>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead>
+                <tr class="text-muted small text-uppercase letter-spacing-1">
+                    <th class="border-0 pb-3">Khách hàng</th>
+                    <th class="border-0 pb-3">Influencer</th>
+                    <th class="border-0 pb-3">Giá trị (VND)</th>
+                    <th class="border-0 pb-3">Phí sàn</th>
+                    <th class="border-0 pb-3">Trạng thái</th>
+                    <th class="border-0 pb-3">Ngày tạo</th>
+                    <th class="border-0 pb-3"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model)
+                {
+                    <tr>
+                        <td class="py-3 border-0">
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name=@Uri.EscapeDataString(b.CustomerUser.FullName)&background=random" class="rounded-circle me-3" style="width: 32px; height: 32px;">
+                                <span class="fw-semibold">@b.CustomerUser.FullName</span>
+                            </div>
+                        </td>
+                        <td class="py-3 border-0">
+                            <span class="text-muted">@b.KolUser.User.FullName</span>
+                        </td>
+                        <td class="py-3 border-0 fw-bold">@((b.BookingRequest?.BudgetMin ?? b.TotalAmount).ToString("N0"))</td>
+                        <td class="py-3 border-0 text-primary small fw-semibold">@b.PlatformFee.ToString("N0")</td>
+                        <td class="py-3 border-0">
+                            @{
+                                var (badgeCss, badgeLabel) = b.Status switch {
+                                    "pending_payment" => ("bg-warning-subtle text-warning", "Chờ thanh toán"),
+                                    "paid" or "in_progress" => ("bg-info-subtle text-info", "Đang thực hiện"),
+                                    "completed" => ("bg-success-subtle text-success", "Hoàn tất"),
+                                    "cancelled" or "refunded" => ("bg-danger-subtle text-danger", "Đã hủy"),
+                                    _ => ("bg-secondary-subtle text-secondary", b.Status)
+                                };
+                            }
+                            <span class="badge rounded-pill px-3 py-2 @badgeCss">@badgeLabel</span>
+                        </td>
+                        <td class="py-3 border-0 small text-muted">@b.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td class="py-3 border-0">
+                            <a href="/Booking/RequestDetail/@b.BookingRequestId" class="btn btn-sm btn-outline-secondary rounded-pill px-3" title="Xem chi tiết">
+                                <i class="bi bi-eye me-1"></i>Chi tiết
+                            </a>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">Chưa có giao dịch nào được ghi nhận.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

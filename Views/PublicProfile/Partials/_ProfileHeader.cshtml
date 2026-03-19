@@ -1,0 +1,78 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+
+<div class="lux-profile-header position-relative">
+    <!-- 1. COVER BANNER -->
+    <div class="lux-profile-banner" style="height: 320px; background: linear-gradient(rgba(0,0,0,0.1), rgba(0,0,0,0.4)), url('https://images.pexels.com/photos/3735218/pexels-photo-3735218.jpeg?auto=compress&cs=tinysrgb&w=1200') center/cover no-repeat;">
+    </div>
+
+    <!-- 2. MAIN HEADER CONTENT -->
+    <div class="container position-relative" style="margin-top: -80px; z-index: 5;">
+        <div class="row align-items-end">
+            <div class="col-auto">
+                <div class="lux-profile-avatar-wrap p-1 bg-white rounded-circle shadow-lg">
+                    <img src="@(Model.AvatarUrl ?? "/images/default-avatar.png")" alt="@Model.FullName" 
+                         class="rounded-circle border border-5 border-white" style="width: 180px; height: 180px; object-fit: cover;">
+                    @if (Model.IsVerified)
+                    {
+                        <div class="verified-badge-large">
+                            <i class="bi bi-patch-check-fill"></i>
+                        </div>
+                    }
+                </div>
+            </div>
+            <div class="col pb-4">
+                <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                    <h1 class="lux-h1 display-4 mb-0">@Model.FullName</h1>
+                    <span class="lux-badge-gold">@Model.InfluencerType Influencer</span>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-4 text-muted small fw-bold mb-3">
+                    <span><i class="bi bi-geo-alt me-1"></i> @Model.LocationCity, @Model.LocationCountry</span>
+                    <span><i class="bi bi-star-fill text-gold me-1"></i> @Model.RatingAvg (@Model.RatingCount đánh giá)</span>
+                    <span class="text-indigo">#@string.Join(", #", Model.Platforms)</span>
+                </div>
+                <!-- Action buttons in header for quick access -->
+                <div class="d-flex gap-2 flex-wrap">
+                    <a asp-controller="PublicProfile" asp-action="Book" asp-route-id="@Model.UserId"
+                       class="btn btn-dark rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-calendar-check me-2"></i>Đặt lịch ngay
+                    </a>
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        <a asp-controller="PublicProfile" asp-action="StartChat" asp-route-kolId="@Model.UserId"
+                           class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+                            <i class="bi bi-chat-dots me-2"></i>Nhắn tin
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-controller="Auth" asp-action="Login"
+                           class="btn btn-outline-dark rounded-pill px-4 py-2 fw-semibold">
+                            <i class="bi bi-chat-dots me-2"></i>Nhắn tin
+                        </a>
+                    }
+                    <button class="btn btn-light rounded-circle" style="width:40px;height:40px;">
+                        <i class="bi bi-share"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lux-profile-header {
+        background: #fff;
+        border-bottom: 1px solid var(--lux-border-thick);
+    }
+    .verified-badge-large {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        color: var(--lux-accent-gold);
+        background: #fff;
+        border-radius: 50%;
+        line-height: 1;
+        font-size: 2rem;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+</style>

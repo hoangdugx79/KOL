@@ -1,0 +1,209 @@
+@model KOL_KOC_TAAA.ViewModels.CreateBookingRequestViewModel
+@{
+    ViewData["Title"] = $"Gửi yêu cầu hợp tác với {ViewBag.KolName}";
+    Layout = "_LayoutLuxury";
+    var dynamicId = Guid.NewGuid().ToString("N");
+}
+
+<div class="lux-booking-page py-5" style="background: var(--lux-bg-stone); min-height: 100vh;">
+    <div class="container container-custom">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="lux-surface overflow-hidden border-0 shadow-2xl" style="background: white; border-radius: 32px;">
+                    <div class="row g-0">
+                        <!-- Left Side: Context & Branding -->
+                        <div class="col-md-4 p-5 d-none d-md-flex flex-column justify-content-between" style="background: var(--lux-primary-indigo); color: white;">
+                            <div>
+                                <a href="/" class="text-decoration-none mb-5 d-block">
+                                    <span class="fs-4 fw-bold tracking-tighter" style="color: white; font-family: 'Outfit', sans-serif;">
+                                        KOL<span style="color: var(--lux-accent-gold);">MARKT</span>
+                                    </span>
+                                </a>
+                                <h2 class="lux-h2 text-white mb-4">Start your <span class="serif italic">Creative</span> journey.</h2>
+                                <p class="opacity-75 small line-height-lg">Bạn đang gửi yêu cầu hợp tác chính thức tới <strong>@ViewBag.KolName</strong>. Hãy cung cấp Brief chi tiết nhất để tăng khả năng được chấp nhận.</p>
+                            </div>
+                            
+                            <div class="p-4 rounded-4" style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                                <h6 class="lux-cap text-white-50 mb-3" style="font-size: 0.65rem;">Lưu ý quan trọng</h6>
+                                <ul class="list-unstyled small mb-0 opacity-75">
+                                    <li class="mb-2"><i class="bi bi-shield-check me-2"></i> Thanh toán được bảo vệ bởi Escrow.</li>
+                                    <li class="mb-2"><i class="bi bi-chat-dots me-2"></i> Chat Room sẽ được tạo tự động.</li>
+                                    <li><i class="bi bi-file-earmark-text me-2"></i> Hợp đồng điện tử sau khi chốt.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Right Side: Booking Form -->
+                        <div class="col-md-8 p-5">
+                            <h2 class="lux-h2 mb-5">Yêu cầu hợp tác</h2>
+                            
+                            <form asp-action="Book" method="post" class="lux-form">
+                                <div asp-validation-summary="ModelOnly" class="text-danger small mb-4"></div>
+                                <input type="hidden" asp-for="KolUserId" />
+                                
+                                <!-- General Info -->
+                                <div class="mb-5">
+                                    <div class="row g-4">
+                                        <div class="col-12">
+                                            <label asp-for="Title" class="lux-cap mb-2 d-block">Tên chiến dịch / Dự án</label>
+                                            <input asp-for="Title" class="lux-input w-100" placeholder="VD: Chiến dịch ra mắt BST Mùa Hè 2024" />
+                                            <span asp-validation-for="Title" class="text-danger small"></span>
+                                        </div>
+                                        <div class="col-12">
+                                            <label asp-for="Brief" class="lux-cap mb-2 d-block">Mô tả công việc (Brief)</label>
+                                            <textarea asp-for="Brief" class="lux-input w-100" rows="4" placeholder="Hãy mô tả mục tiêu, yêu cầu về content, phong cách và các cột mốc quan trọng..."></textarea>
+                                            <span asp-validation-for="Brief" class="text-danger small"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Budget & Timeline -->
+                                <div class="mb-5 p-4 rounded-4" style="background: var(--lux-bg-ivory);">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="lux-cap mb-2 d-block">Ngân sách dự kiến (VND)</label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input asp-for="BudgetMin" class="lux-input w-50" placeholder="Min" />
+                                                <span class="text-muted">—</span>
+                                                <input asp-for="BudgetMax" class="lux-input w-50" placeholder="Max" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="lux-cap mb-2 d-block">Thời gian triển khai</label>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <input asp-for="ProposedStartDate" type="date" class="lux-input w-50" />
+                                                <span class="text-muted">—</span>
+                                                <input asp-for="ProposedEndDate" type="date" class="lux-input w-50" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Booking Items (Dynamic Section) -->
+                                <div class="mb-5">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h4 class="lux-h4 mb-0">Hạng mục dịch vụ</h4>
+                                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="addBookingItem()">+ Thêm hạng mục</button>
+                                    </div>
+                                    
+                                    <div id="booking-items-container">
+                                        @for (int i = 0; i < Model.Items.Count; i++)
+                                        {
+                                            <div class="booking-item-row p-3 mb-3 border rounded-4 bg-white shadow-sm position-relative">
+                                                <div class="row g-3">
+                                                    <div class="col-md-5">
+                                                        <label class="small text-muted mb-1">Dịch vụ</label>
+                                                        <select asp-for="Items[i].ServiceType" class="form-select lux-input border-0 bg-light py-2 shadow-none">
+                                                            <option value="">Chọn dịch vụ...</option>
+                                                            @if (ViewBag.RateCards != null)
+                                                            {
+                                                                foreach (var rc in (List<KOL_KOC_TAAA.Models.RateCard>)ViewBag.RateCards)
+                                                                {
+                                                                    <optgroup label="@rc.Title">
+                                                                        @foreach (var item in rc.RateCardItems)
+                                                                        {
+                                                                            <option value="@item.ServiceType">@item.ServiceType (@item.UnitPrice.ToString("N0") VND)</option>
+                                                                        }
+                                                                    </optgroup>
+                                                                }
+                                                            }
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="small text-muted mb-1">Nền tảng</label>
+                                                        <select asp-for="Items[i].Platform" class="form-select lux-input border-0 bg-light py-2 shadow-none">
+                                                            <option value="TikTok">TikTok</option>
+                                                            <option value="Instagram">Instagram</option>
+                                                            <option value="Facebook">Facebook</option>
+                                                            <option value="YouTube">YouTube</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="small text-muted mb-1">S.Lượng</label>
+                                                        <input asp-for="Items[i].Quantity" class="lux-input border-0 bg-light py-2 w-100 text-center shadow-none" />
+                                                    </div>
+                                                    <div class="col-md-2 d-flex align-items-end justify-content-end">
+                                                        <button type="button" class="btn btn-link text-danger p-0 mb-2" onclick="removeBookingItem(this)"><i class="bi bi-trash"></i></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="lux-btn-primary w-100 py-4 shadow-xl">
+                                    Gửi Yêu Cầu Hợp Tác <i class="bi bi-send-fill ms-2"></i>
+                                </button>
+                                
+                                <div class="text-center mt-4">
+                                    <a asp-action="Detail" asp-route-id="@Model.KolUserId" class="text-muted small text-decoration-none hover-indigo transition-all">
+                                        <i class="bi bi-arrow-left me-1"></i> Quay lại hồ sơ
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let itemCount = @Model.Items.Count;
+        
+        function addBookingItem() {
+            const container = document.getElementById('booking-items-container');
+            const newRow = container.children[0].cloneNode(true);
+            
+            // Update inputs and names
+            const inputs = newRow.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace(/\[\d+\]/, `[${itemCount}]`));
+                }
+                const id = input.getAttribute('id');
+                if (id) {
+                    input.setAttribute('id', id.replace(/_\d+__/, `_${itemCount}__`));
+                }
+                if (input.tagName === 'INPUT') input.value = '';
+                if (input.tagName === 'SELECT') input.selectedIndex = 0;
+            });
+            
+            container.appendChild(newRow);
+            itemCount++;
+        }
+
+        function removeBookingItem(btn) {
+            const container = document.getElementById('booking-items-container');
+            if (container.children.length > 1) {
+                btn.closest('.booking-item-row').remove();
+            } else {
+                alert("Bạn phải có ít nhất một hạng mục dịch vụ.");
+            }
+        }
+    </script>
+}
+
+<style>
+    .lux-booking-page .lux-surface {
+        min-height: 700px;
+    }
+    .shadow-2xl {
+        box-shadow: 0 50px 100px -20px rgba(0,0,0,0.15);
+    }
+    .hover-indigo:hover { color: var(--lux-primary-indigo) !important; }
+    .transition-all { transition: all 0.3s ease; }
+    .lux-input:focus {
+        background: white !important;
+        border-color: var(--lux-accent-gold) !important;
+    }
+    .booking-item-row {
+        transition: transform 0.3s ease;
+    }
+    .booking-item-row:hover {
+        transform: scale(1.01);
+    }
+</style>

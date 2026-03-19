@@ -1,0 +1,130 @@
+@model KOL_KOC_TAAA.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Đăng Ký Thành Viên | Luxury KOL Marketplace";
+    Layout = "_LayoutLuxury";
+}
+
+<div class="lux-auth-wrapper min-vh-100 d-flex align-items-center justify-content-center p-3" style="background: var(--lux-bg-ivory);">
+    <div class="lux-auth-container row g-0 shadow-lg overflow-hidden" style="max-width: 1000px; width: 100%; border-radius: 24px; background: white;">
+        
+        <!-- Left Side: Visual Inspiration -->
+        <div class="col-md-5 d-none d-md-block position-relative" style="background: var(--lux-bg-stone);">
+            <div class="h-100 w-100 p-5 d-flex flex-column justify-content-center">
+                <div class="mb-5">
+                    <span class="lux-cap mb-3 d-block">Bắt đầu hành trình</span>
+                    <h2 class="lux-h1" style="font-size: 2.5rem; letter-spacing: -1.5px;">Gia nhập cộng đồng <span style="font-family: serif; font-style: italic; color: var(--lux-accent-gold);">tinh hoa</span>.</h2>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="d-flex gap-3 mb-4">
+                        <div class="lux-icon-dot mt-1"></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Dành cho Nhà sáng tạo</h6>
+                            <p class="small text-muted mb-0">Tiếp cận những chiến dịch quy mô và chuyên nghiệp nhất thị trường.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="lux-icon-dot mt-1" style="background: var(--lux-primary-indigo);"></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Dành cho Thương hiệu</h6>
+                            <p class="small text-muted mb-0">Hệ thống AI đề xuất những gương mặt phù hợp tuyệt đối với ADN nhãn hàng.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Editorial Image Overlay (Optional) -->
+            <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10" style="background: url('https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80') center/cover;"></div>
+        </div>
+
+        <!-- Right Side: Register Form -->
+        <div class="col-md-7 p-4 p-lg-5">
+            <div class="mb-5">
+                <div class="d-flex justify-content-between align-items-end">
+                    <div>
+                        <h2 class="lux-h2 mb-1">Tạo tài khoản mới</h2>
+                        <p class="text-muted small">Hãy chọn vai trò phù hợp để chúng tôi tối ưu trải nghiệm cho bạn.</p>
+                    </div>
+                    <a href="/" class="d-none d-sm-block">
+                        <span class="fs-4 fw-bold tracking-tighter" style="color: var(--lux-primary-indigo);">
+                            KOL<span style="color: var(--lux-accent-gold);">MARKT</span>
+                        </span>
+                    </a>
+                </div>
+            </div>
+
+            <form asp-action="Register" method="post" class="lux-form mt-2">
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                
+                <!-- Role Selection (Bento Style Selection) -->
+                <div class="mb-4">
+                    <label class="lux-cap mb-3 d-block" style="font-size: 0.75rem;">Bạn là ai?</label>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <input type="radio" name="Role" value="Customer" id="roleCustomer" class="btn-check" checked>
+                            <label class="lux-role-card p-3 w-100 h-100 border text-center rounded-4 cursor-pointer transition-all" for="roleCustomer">
+                                <i class="bi bi-briefcase fs-3 mb-2 d-block"></i>
+                                <span class="fw-bold small d-block mb-1">Nhãn hàng</span>
+                                <span class="text-muted" style="font-size: 0.65rem;">Tìm kiếm talent</span>
+                            </label>
+                        </div>
+                        <div class="col-6">
+                            <input type="radio" name="Role" value="KOL" id="roleKOL" class="btn-check">
+                            <label class="lux-role-card p-3 w-100 h-100 border text-center rounded-4 cursor-pointer transition-all" for="roleKOL">
+                                <i class="bi bi-person-badge fs-3 mb-2 d-block"></i>
+                                <span class="fw-bold small d-block mb-1">KOL / KOC</span>
+                                <span class="text-muted" style="font-size: 0.65rem;">Nhận booking mới</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label lux-cap mb-2" style="font-size: 0.75rem;">Email Công việc</label>
+                    <input asp-for="Email" class="lux-input w-100" placeholder="work@example.com" />
+                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <label asp-for="Password" class="form-label lux-cap mb-2" style="font-size: 0.75rem;">Mật khẩu</label>
+                        <input asp-for="Password" type="password" class="lux-input w-100" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="ConfirmPassword" class="form-label lux-cap mb-2" style="font-size: 0.75rem;">Xác nhận</label>
+                        <input asp-for="ConfirmPassword" type="password" class="lux-input w-100" placeholder="••••••••" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                </div>
+
+                <div class="mb-4 small text-muted">
+                    Bằng việc nhấn đăng ký, bạn đồng ý với <a href="#" class="text-dark fw-bold text-decoration-none">Điều khoản dịch vụ</a> và <a href="#" class="text-dark fw-bold text-decoration-none">Chính sách bảo mật</a> của chúng tôi.
+                </div>
+
+                <button type="submit" class="lux-btn-primary w-100 py-3">
+                    Khởi Tạo Tài Khoản <i class="bi bi-person-plus ms-2"></i>
+                </button>
+
+                <div class="text-center mt-4">
+                    <p class="small text-muted">Đã thành viên? <a asp-action="Login" class="fw-bold text-decoration-none" style="color: var(--lux-primary-indigo);">Đăng nhập tại đây</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .lux-role-card {
+        background: #fdfdfd;
+        border-color: rgba(0,0,0,0.06) !important;
+        cursor: pointer;
+    }
+    .btn-check:checked + .lux-role-card {
+        border-color: var(--lux-primary-indigo) !important;
+        background: rgba(26, 35, 126, 0.02);
+        box-shadow: 0 4px 15px rgba(26, 35, 126, 0.08);
+    }
+    .btn-check:checked + .lux-role-card i { color: var(--lux-primary-indigo); }
+    .lux-icon-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--lux-accent-gold); }
+    .cursor-pointer { cursor: pointer; }
+</style>

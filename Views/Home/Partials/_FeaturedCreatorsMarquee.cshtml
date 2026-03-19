@@ -1,0 +1,170 @@
+@model List<KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel>
+
+<section class="lux-marquee-section py-5 overflow-hidden">
+    <div class="container mb-4">
+        <div class="d-flex align-items-end justify-content-between">
+            <div data-reveal="fade-right">
+                <h6 class="text-uppercase fw-bold text-muted small ls-2 mb-2">Tài năng nổi bật</h6>
+                <h2 class="lux-h2">Gặp gỡ những <span class="text-gradient-gold">gương mặt tiêu biểu</span></h2>
+            </div>
+            <a href="/Home/Search" class=" lux-link d-none d-md-flex align-items-center gap-2 mb-2">
+                Xem tất cả <i class="bi bi-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+
+    <!-- MARQUEE WRAPPER -->
+    <div class="marquee-wrapper">
+        <div class="marquee-content">
+            @for (int i = 0; i < 2; i++) // Duplicate for seamless loop
+            {
+                @foreach (var kol in Model)
+                {
+                    <div class="marquee-card">
+                        <a href="@Url.Action("KolDetail", "Home", new { id = kol.UserId })" class="text-decoration-none">
+                            <div class="kol-card-bento p-3">
+                                <div class="kol-avatar-wrap position-relative mb-3">
+                                    <img src="@(kol.AvatarUrl ?? "/images/default-avatar.png")" alt="@kol.FullName" class="kol-avatar">
+                                    <div class="card-actions-overlay">
+                                        <a href="@Url.Action("StartWithKol", "Chat", new { kolId = kol.UserId })" class="quick-chat-btn" title="Nhắn tin nhanh">
+                                            <i class="bi bi-chat-text-fill"></i>
+                                        </a>
+                                    </div>
+                                    @if (kol.IsVerified)
+                                    {
+                                        <div class="verified-badge-mini">
+                                            <i class="bi bi-patch-check-fill"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="kol-info">
+                                    <h5 class="kol-name mb-1">@kol.FullName</h5>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="badge-niche">#@kol.Category</span>
+                                        <span class="text-muted small">@kol.InfluencerType</span>
+                                    </div>
+                                    <div class="kol-stats-mini d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <i class="bi bi-people-fill opacity-50 me-1"></i>
+                                            <span class="fw-bold small">@(kol.TotalFollowers?.ToString("N0") ?? "0")</span>
+                                        </div>
+                                        @if (kol.MinBudget > 0)
+                                        {
+                                            <div class="text-gold fw-bold small">
+                                                Từ @kol.MinBudget?.ToString("N0")đ
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    .marquee-wrapper {
+        display: flex;
+        overflow: hidden;
+        user-select: none;
+        gap: 20px;
+        padding: 20px 0;
+    }
+
+    .marquee-content {
+        display: flex;
+        flex-shrink: 0;
+        gap: 20px;
+        animation: marquee-scroll 40s linear infinite;
+    }
+
+    .marquee-wrapper:hover .marquee-content {
+        animation-play-state: paused;
+    }
+
+    .marquee-card {
+        width: 280px;
+        flex-shrink: 0;
+    }
+
+    .kol-card-bento {
+        background: #fff;
+        border: 1px solid var(--lux-border-thick);
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .kol-card-bento:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+        border-color: var(--lux-accent-gold);
+    }
+
+    .kol-avatar {
+        width: 100%;
+        height: 180px;
+        object-fit: cover;
+        border-radius: 12px;
+    }
+
+    .badge-niche {
+        font-size: 10px;
+        font-weight: 700;
+        background: var(--lux-bg-stone);
+        color: var(--lux-primary-indigo);
+        padding: 2px 8px;
+        border-radius: 4px;
+        text-transform: uppercase;
+    }
+
+    .verified-badge-mini {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        color: var(--lux-accent-gold);
+        font-size: 1.2rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .card-actions-overlay {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 10;
+    }
+
+    .kol-card-bento:hover .card-actions-overlay {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .quick-chat-btn {
+        width: 40px;
+        height: 40px;
+        background: var(--lux-primary-indigo);
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.2s ease;
+    }
+
+    .quick-chat-btn:hover {
+        background: var(--lux-accent-gold);
+        color: #fff;
+        transform: scale(1.1);
+    }
+
+    @@keyframes marquee-scroll {
+        from { transform: translateX(0); }
+        to { transform: translateX(calc(-50% - 10px)); }
+    }
+</style>

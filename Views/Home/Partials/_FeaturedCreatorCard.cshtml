@@ -1,0 +1,59 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+
+<div class="lux-bento-item lux-span-2 lux-row-span-2 border-0 lux-hover-lift" style="background: #fff; border: 1px solid rgba(0,0,0,0.06) !important;">
+    <div class="row g-0 h-100">
+        <!-- Image Area (Left - 50%) -->
+        <div class="col-md-6 lux-hover-zoom position-relative" style="min-height: 300px;">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" alt="@Model.FullName" class="w-100 h-100 object-fit-cover" loading="lazy">
+            }
+            else
+            {
+                <div class="lux-monogram w-100 h-100 fs-1">
+                    @(Model.FullName?.Substring(0, 1) ?? "F")
+                </div>
+            }
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: linear-gradient(90deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.05) 100%);"></div>
+            
+            <div class="position-absolute top-0 start-0 m-4">
+                <span class="lux-badge-gold" style="background: var(--lux-primary-indigo); color: white; border: none;">Editor's Pick</span>
+            </div>
+        </div>
+
+        <!-- Info Area (Right - 50%) -->
+        <div class="col-md-6 d-flex flex-column p-4 p-lg-5">
+            <div class="lux-cap mb-3">Tâm điểm sáng tạo</div>
+            <h2 class="lux-h2 mb-4" style="font-size: 2.2rem; line-height: 1.2;">@Model.FullName</h2>
+            
+            <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded" style="background: var(--lux-bg-stone);">
+                <div class="border-end pe-3">
+                    <div class="small text-muted opacity-75 mb-1">Impact score</div>
+                    <div class="fw-bold h5 mb-0" style="color: var(--lux-accent-gold);">9.8</div>
+                </div>
+                <div>
+                    <div class="small text-muted opacity-75 mb-1">Verified</div>
+                    <i class="bi bi-patch-check-fill" style="color: var(--lux-accent-gold);"></i>
+                </div>
+            </div>
+
+            <p class="lux-body-text mb-4" style="font-size: 1.05rem; line-height: 1.6;">
+                Nổi tiếng với phong cách tối giản và những nội dung có giá trị chiều sâu. @Model.FullName là lựa chọn hàng đầu cho các thương hiệu muốn xây dựng trust.
+            </p>
+
+            <div class="lux-insight-line mb-4 px-4 py-2 bg-light border-0 rounded" style="font-size: 0.9rem;">
+                Tỷ lệ chuyển đổi booking cao kỷ lục trong quý 3.
+            </div>
+
+            <div class="mt-auto pt-4 border-top d-flex align-items-center justify-content-between">
+                <div>
+                    <div class="small text-muted mb-1">Followers</div>
+                    <div class="fw-bold">@((Model.TotalFollowers ?? 0).ToString("N0"))</div>
+                </div>
+                <div class="text-end">
+                    <a asp-action="KolDetail" asp-route-id="@Model.UserId" class="lux-btn-primary px-5 py-3">Booking Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

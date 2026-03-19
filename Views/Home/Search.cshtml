@@ -1,0 +1,340 @@
+@model IEnumerable<KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel>
+@{
+    var queryStr = ViewBag.Query as string;
+    ViewData["Title"] = string.IsNullOrEmpty(queryStr) ? "Tìm kiếm KOL/KOC" : $"Kết quả tìm kiếm cho '{queryStr}'";
+    ViewData["MetaDescription"] = $"Danh sách KOL/KOC phù hợp với tìm kiếm: {queryStr ?? "Tất cả"}. Tìm kiếm Influencer theo loại và địa điểm tại Việt Nam.";
+    var resultCount = Model.Count();
+}
+
+<!-- Hero Search Banner -->
+<section class="search-hero position-relative overflow-hidden" style="background: linear-gradient(135deg, #1A1C2C 0%, #2D3047 50%, #3D4461 100%); padding: 3.5rem 0 2.5rem;">
+    <div class="container position-relative" style="z-index:2;">
+        <div class="text-center mb-4">
+            <span class="lux-cap d-inline-block mb-2" style="color: var(--lux-accent-gold);">
+                <i class="bi bi-compass me-1"></i> Khám phá Influencer
+            </span>
+            <h1 class="fw-bold text-white mb-2" style="font-size: 2rem; letter-spacing: -0.02em;">
+                @if (!string.IsNullOrEmpty(queryStr))
+                {
+                    <span>Kết quả cho "<span style="color: var(--lux-accent-gold);">@queryStr</span>"</span>
+                }
+                else
+                {
+                    <span>Cộng đồng <span style="color: var(--lux-accent-gold);">Influencers</span></span>
+                }
+            </h1>
+            <p class="text-white-50 mb-0" style="font-size: .95rem;">Kết nối với những gương mặt sáng tạo phù hợp nhất cho thương hiệu của bạn</p>
+        </div>
+
+        <!-- Search Form -->
+        <div class="mx-auto" style="max-width: 920px;">
+            <form asp-action="Search" method="get" class="search-glass-form p-3 p-md-4 rounded-4" style="background: rgba(255,255,255,0.07); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1);">
+                <div class="row g-2 g-md-3 align-items-end">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-white-50 mb-1" style="font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Từ khóa</label>
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text"><i class="bi bi-search"></i></span>
+                            <input type="text" name="query" value="@ViewBag.Query" class="form-control" placeholder="Tên KOL, kỹ năng..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold text-white-50 mb-1" style="font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Hạng</label>
+                        <select name="type" class="form-select search-select">
+                            <option value="">Tất cả</option>
+                            <option value="Nano" selected="@(ViewBag.Type == "Nano")">Nano (1k–10k)</option>
+                            <option value="Micro" selected="@(ViewBag.Type == "Micro")">Micro (10k–50k)</option>
+                            <option value="Macro" selected="@(ViewBag.Type == "Macro")">Macro (50k–500k)</option>
+                            <option value="Mega" selected="@(ViewBag.Type == "Mega")">Mega (>500k)</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small fw-semibold text-white-50 mb-1" style="font-size:.7rem;letter-spacing:.5px;text-transform:uppercase;">Địa điểm</label>
+                        <div class="input-group search-input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input type="text" name="city" value="@ViewBag.City" class="form-control" placeholder="Hà Nội, TP.HCM...">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-2">
+                        <button type="submit" class="btn w-100 py-2 fw-semibold" style="background: var(--lux-accent-gold); color: #fff; border-radius: 10px; letter-spacing: .3px;">
+                            <i class="bi bi-funnel me-1"></i>Lọc
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Decorative elements -->
+    <div class="position-absolute" style="top:-60px;right:-60px;width:200px;height:200px;border-radius:50%;background:rgba(197,160,89,0.06);"></div>
+    <div class="position-absolute" style="bottom:-40px;left:-40px;width:160px;height:160px;border-radius:50%;background:rgba(197,160,89,0.04);"></div>
+</section>
+
+<!-- Results -->
+<section class="container py-5">
+    @if (resultCount > 0)
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <p class="text-muted mb-0" style="font-size:.9rem;">
+                Tìm thấy <strong class="text-dark">@resultCount</strong> influencer phù hợp
+            </p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm px-3 view-toggle active" data-view="grid" title="Dạng lưới" style="border-radius:8px;">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>
+                </button>
+                <button class="btn btn-sm px-3 view-toggle" data-view="list" title="Dạng danh sách" style="border-radius:8px;">
+                    <i class="bi bi-list-ul"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4" id="searchResults">
+            @foreach (var kol in Model)
+            {
+                var avatarFallback = $"https://ui-avatars.com/api/?name={Uri.EscapeDataString(kol.FullName)}&size=400&background=1A1C2C&color=C5A059&bold=true";
+                var tierColor = kol.InfluencerType switch {
+                    "Mega" => "#C5A059",
+                    "Macro" => "#6366F1",
+                    "Micro" => "#10B981",
+                    "Nano" => "#8B5CF6",
+                    _ => "#6B7280"
+                };
+
+                <div class="col-12 col-sm-6 col-lg-4 col-xl-3 search-card-col">
+                    <a asp-action="KolDetail" asp-route-id="@kol.UserId" class="text-decoration-none d-block h-100">
+                        <div class="search-kol-card h-100">
+                            <!-- Image -->
+                            <div class="search-card-img-wrap position-relative">
+                                @if (!string.IsNullOrEmpty(kol.AvatarUrl))
+                                {
+                                    <img src="@kol.AvatarUrl" alt="@kol.FullName" class="search-card-img" loading="lazy"
+                                         onerror="this.src='@avatarFallback'">
+                                }
+                                else
+                                {
+                                    <img src="@avatarFallback" alt="@kol.FullName" class="search-card-img" loading="lazy">
+                                }
+
+                                <!-- Gradient overlay -->
+                                <div class="search-card-overlay"></div>
+
+                                <!-- Verified badge -->
+                                @if (kol.IsVerified)
+                                {
+                                    <div class="position-absolute top-0 end-0 m-2">
+                                        <div class="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style="width:26px;height:26px;">
+                                            <i class="bi bi-patch-check-fill" style="color:var(--lux-accent-gold);font-size:1rem;"></i>
+                                        </div>
+                                    </div>
+                                }
+
+                                <!-- Tier badge on image -->
+                                <div class="position-absolute bottom-0 start-0 w-100 p-3 d-flex justify-content-between align-items-end">
+                                    <span class="badge fw-semibold px-2 py-1" style="background:@(tierColor);color:#fff;font-size:.65rem;border-radius:6px;letter-spacing:.5px;">
+                                        @kol.InfluencerType
+                                    </span>
+                                    @if (kol.Platforms != null && kol.Platforms.Any())
+                                    {
+                                        <div class="d-flex gap-1">
+                                            @foreach (var platform in kol.Platforms.Select(p => p.ToLower()).Distinct().Take(3))
+                                            {
+                                                var icon = platform switch {
+                                                    "tiktok" => "bi-tiktok",
+                                                    "instagram" => "bi-instagram",
+                                                    "facebook" => "bi-facebook",
+                                                    "youtube" => "bi-youtube",
+                                                    "twitter" => "bi-twitter-x",
+                                                    _ => "bi-globe"
+                                                };
+                                                <span class="d-flex align-items-center justify-content-center text-white" style="width:24px;height:24px;background:rgba(0,0,0,0.45);backdrop-filter:blur(4px);border-radius:6px;font-size:.7rem;border:1px solid rgba(255,255,255,0.15);">
+                                                    <i class="bi @icon"></i>
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="search-card-body">
+                                <h6 class="fw-bold mb-1 text-truncate" style="color:var(--lux-primary-indigo);font-size:.95rem;">@kol.FullName</h6>
+
+                                @if (!string.IsNullOrEmpty(kol.LocationCity))
+                                {
+                                    <p class="text-muted mb-2" style="font-size:.78rem;">
+                                        <i class="bi bi-geo-alt-fill me-1" style="color:var(--lux-accent-gold);"></i>@kol.LocationCity
+                                    </p>
+                                }
+
+                                <!-- Stats row -->
+                                <div class="d-flex align-items-center gap-3 mb-3">
+                                    <span class="d-flex align-items-center gap-1" style="font-size:.82rem;">
+                                        <i class="bi bi-star-fill" style="color:#F59E0B;font-size:.75rem;"></i>
+                                        <strong style="color:var(--lux-primary-indigo);">@kol.RatingAvg.ToString("0.00")</strong>
+                                        <span class="text-muted" style="font-size:.72rem;">(@kol.RatingCount)</span>
+                                    </span>
+                                    @if (kol.TotalFollowers > 0)
+                                    {
+                                        <span class="text-muted" style="font-size:.75rem;">
+                                            <i class="bi bi-people-fill me-1"></i>@((kol.TotalFollowers ?? 0).ToString("N0"))
+                                        </span>
+                                    }
+                                </div>
+
+                                <!-- Budget & CTA -->
+                                <div class="d-flex justify-content-between align-items-center pt-2" style="border-top:1px solid rgba(0,0,0,0.05);">
+                                    <div>
+                                        <div class="text-muted" style="font-size:.6rem;text-transform:uppercase;letter-spacing:.5px;font-weight:600;">Từ</div>
+                                        <div class="fw-bold" style="color:var(--lux-accent-gold);font-size:.9rem;">@(kol.MinBudget?.ToString("N0") ?? "—") <span class="text-muted fw-normal" style="font-size:.7rem;">VND</span></div>
+                                    </div>
+                                    <span class="search-cta-btn">
+                                        Xem hồ sơ <i class="bi bi-arrow-right ms-1"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5" style="max-width:420px;margin:0 auto;">
+            <div class="mb-4 d-inline-flex align-items-center justify-content-center rounded-circle" style="width:80px;height:80px;background:var(--lux-bg-stone);">
+                <i class="bi bi-search" style="font-size:2rem;color:var(--lux-accent-gold);opacity:.6;"></i>
+            </div>
+            <h5 class="fw-bold mb-2" style="color:var(--lux-primary-indigo);">Chưa tìm thấy kết quả</h5>
+            <p class="text-muted mb-4" style="font-size:.9rem;">Thử thay đổi từ khóa hoặc bộ lọc để tìm influencer phù hợp.</p>
+            <a asp-action="Index" class="btn btn-sm px-4 py-2 rounded-pill" style="border: 1px solid var(--lux-accent-gold); color: var(--lux-accent-gold);">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại trang chủ
+            </a>
+        </div>
+    }
+</section>
+
+@section Scripts {
+<style>
+    /* ── Search Form Inputs ── */
+    .search-input-group .input-group-text {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-right: 0;
+        color: rgba(255,255,255,0.5);
+        border-radius: 10px 0 0 10px;
+    }
+    .search-input-group .form-control {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        border-left: 0;
+        color: #fff;
+        border-radius: 0 10px 10px 0;
+        padding: .55rem .75rem;
+    }
+    .search-input-group .form-control::placeholder { color: rgba(255,255,255,0.35); }
+    .search-input-group .form-control:focus {
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(197,160,89,0.4);
+        box-shadow: 0 0 0 2px rgba(197,160,89,0.15);
+    }
+    .search-select {
+        background: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.12);
+        color: #fff;
+        border-radius: 10px;
+        padding: .55rem .75rem;
+    }
+    .search-select:focus {
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(197,160,89,0.4);
+        box-shadow: 0 0 0 2px rgba(197,160,89,0.15);
+    }
+    .search-select option { background: #1A1C2C; color: #fff; }
+
+    /* ── View Toggle ── */
+    .view-toggle { background: var(--lux-bg-stone); border: 1px solid rgba(0,0,0,0.06); color: var(--lux-text-dim); transition: all .2s; }
+    .view-toggle.active, .view-toggle:hover { background: var(--lux-primary-indigo); color: #fff; border-color: var(--lux-primary-indigo); }
+
+    /* ── Card Styling ── */
+    .search-kol-card {
+        background: #fff;
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(0,0,0,0.05);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        transition: all .35s cubic-bezier(.25,1,.5,1);
+    }
+    .search-kol-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        border-color: rgba(197,160,89,0.2);
+    }
+    .search-card-img-wrap {
+        position: relative;
+        width: 100%;
+        padding-top: 115%;
+        overflow: hidden;
+        background: #F3F4F6;
+    }
+    .search-card-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .6s cubic-bezier(.25,1,.5,1);
+    }
+    .search-kol-card:hover .search-card-img {
+        transform: scale(1.06);
+    }
+    .search-card-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 55%;
+        background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 100%);
+        pointer-events: none;
+    }
+    .search-card-body {
+        padding: 1rem 1.1rem 1.1rem;
+    }
+
+    /* ── CTA Button ── */
+    .search-cta-btn {
+        font-size: .73rem;
+        font-weight: 600;
+        color: var(--lux-accent-gold);
+        letter-spacing: .3px;
+        transition: all .25s;
+    }
+    .search-kol-card:hover .search-cta-btn {
+        letter-spacing: .8px;
+    }
+    .search-cta-btn i { transition: transform .25s; }
+    .search-kol-card:hover .search-cta-btn i { transform: translateX(3px); }
+
+    /* ── Responsive ── */
+    @@media (max-width: 576px) {
+        .search-hero { padding: 2rem 0 1.5rem !important; }
+        .search-card-img-wrap { padding-top: 100%; }
+    }
+</style>
+<script>
+    // View toggle (grid vs list)
+    document.querySelectorAll('.view-toggle').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.view-toggle').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const results = document.getElementById('searchResults');
+            const cols = document.querySelectorAll('.search-card-col');
+            if (this.dataset.view === 'list') {
+                cols.forEach(c => { c.className = 'col-12 search-card-col'; });
+                document.querySelectorAll('.search-card-img-wrap').forEach(w => w.style.paddingTop = '45%');
+            } else {
+                cols.forEach(c => { c.className = 'col-12 col-sm-6 col-lg-4 col-xl-3 search-card-col'; });
+                document.querySelectorAll('.search-card-img-wrap').forEach(w => w.style.paddingTop = '115%');
+            }
+        });
+    });
+</script>
+}

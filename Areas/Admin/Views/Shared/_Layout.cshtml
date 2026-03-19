@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Portal | KOL Market</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    
+    <style>
+        :root {
+            --admin-sidebar-width: 280px;
+        }
+        body { 
+            font-family: 'Outfit', sans-serif; 
+            background-color: #f4f7fe; 
+            color: #1e293b;
+        }
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar-admin {
+            width: var(--admin-sidebar-width);
+            background: linear-gradient(180deg, #1e1b4b 0%, #312e81 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .main-panel {
+            flex-grow: 1;
+            margin-left: var(--admin-sidebar-width);
+            width: calc(100% - var(--admin-sidebar-width));
+        }
+        .sidebar-admin .nav-link {
+            color: rgba(255,255,255,0.7);
+            padding: 0.85rem 1rem;
+            border-radius: 1rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .sidebar-admin .nav-link:hover, .sidebar-admin .nav-link.active {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+        .sidebar-admin .nav-link i {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        .sidebar-admin .nav-link.active {
+            background: var(--primary);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.3);
+        }
+        .topbar-admin {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 900;
+        }
+        .admin-content-inner {
+            padding: 2.5rem;
+        }
+        .glass-card-admin {
+            background: white;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.02);
+            padding: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar-admin">
+            <div class="mb-5 px-2">
+                <a class="text-white text-decoration-none d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-rocket-takeoff-fill fs-3 text-warning"></i>
+                    <span class="fs-4 fw-bold">KOL Market</span>
+                </a>
+                <div class="badge bg-primary-light text-primary mt-2 ms-4" style="font-size: 0.65rem; letter-spacing: 1px;">ADMIN PORTAL</div>
+            </div>
+
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Dashboard" ? "active" : "")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                        <i class="bi bi-grid-1x2-fill"></i> Tổng quan
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "KolManagement" ? "active" : "")" asp-area="Admin" asp-controller="KolManagement" asp-action="Index">
+                        <i class="bi bi-people-fill"></i> Quản lý KOLs
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Finances" ? "active" : "")" asp-area="Admin" asp-controller="Finances" asp-action="Payouts">
+                        <i class="bi bi-currency-exchange"></i> Yêu cầu rút tiền
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-megaphone-fill"></i> Chiến dịch
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-exclamation-octagon-fill"></i> Khiếu nại
+                    </a>
+                </li>
+                <li class="nav-item mt-5 border-top border-white border-opacity-10 pt-4">
+                    <a class="nav-link text-danger-emphasis" asp-area="" asp-controller="Home" asp-action="Index">
+                        <i class="bi bi-box-arrow-left"></i> Thoát Admin
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Panel -->
+        <div class="main-panel">
+            <header class="topbar-admin">
+                <h6 class="mb-0 fw-bold text-muted">@ViewData["Title"]</h6>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="d-none d-md-block text-end">
+                        <div class="fw-bold small">@User.Identity?.Name</div>
+                        <div class="text-muted" style="font-size: 0.7rem;">Quản trị viên hệ thống</div>
+                    </div>
+                    <div class="dropdown">
+                        <button class="btn p-0 rounded-circle overflow-hidden shadow-sm" type="button" data-bs-toggle="dropdown" style="width: 40px; height: 40px; border: 2px solid white;">
+                            <img src="https://ui-avatars.com/api/?name=Admin&background=4f46e5&color=fff" class="w-100">
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end border-0 shadow-lg mt-3" style="border-radius: 1rem;">
+                            <li>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post">
+                                    <button type="submit" class="dropdown-item py-2 text-danger"><i class="bi bi-power me-2"></i>Đăng xuất</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-content-inner">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
+

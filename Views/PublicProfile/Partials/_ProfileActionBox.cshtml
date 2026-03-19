@@ -1,0 +1,62 @@
+@model KOL_KOC_TAAA.ViewModels.PublicKolProfileViewModel
+
+<div class="lux-action-box bg-white p-4 border @(ViewData["IsSticky"]?.ToString() == "True" ? "sticky-top" : "")" 
+     style="border-radius:24px; top: 100px; z-index: 100;">
+    <div class="mb-4">
+        <div class="text-muted small mb-1">Chi phí từ</div>
+        <div class="d-flex align-items-baseline gap-2">
+            <h2 class="fw-bold mb-0 text-indigo">@(Model.MinBudget?.ToString("N0") ?? "Liên hệ")</h2>
+            <span class="text-muted small">VNĐ / campaign</span>
+        </div>
+    </div>
+
+    <div class="d-grid gap-3">
+        <a href="@Url.Action("StartWithKol", "Chat", new { kolId = Model.UserId })" class="lux-btn-primary py-3 fs-5 d-flex align-items-center justify-content-center gap-2">
+            <i class="bi bi-chat-dots-fill"></i> NHẮN TIN NGAY
+        </a>
+        <a asp-action="Book" asp-route-id="@Model.UserId" class="lux-btn-outline py-3 fs-5 d-flex align-items-center justify-content-center gap-2" 
+           style="background: var(--lux-accent-gold-soft); border-color: var(--lux-accent-gold); color: var(--lux-accent-gold);">
+            <i class="bi bi-calendar-check-fill"></i> GỬI YÊU CẦU BOOKING
+        </a>
+        <button class="btn btn-light rounded-pill py-2 small fw-bold text-muted border-0">
+            <i class="bi bi-clock-history me-1"></i> ĐẶT LỊCH HẸN (30 MIN)
+        </button>
+    </div>
+
+    <hr class="my-4 opacity-5">
+
+    <div class="lux-trust-signals">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="signal-icon bg-light text-success rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <div>
+                <div class="small fw-bold">Phản hồi nhanh</div>
+                <div class="text-muted" style="font-size: 0.75rem;">@Model.AvgResponseTime</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="signal-icon bg-light text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                <i class="bi bi-briefcase-fill"></i>
+            </div>
+            <div>
+                <div class="small fw-bold">Kinh nghiệm</div>
+                <div class="text-muted" style="font-size: 0.75rem;">@Model.CompletedCampaigns chiến dịch thành công</div>
+            </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="signal-icon bg-light text-warning rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                <i class="bi bi-award-fill"></i>
+            </div>
+            <div>
+                <div class="small fw-bold">Uy tín cao</div>
+                <div class="text-muted" style="font-size: 0.75rem;">@Model.CompletionRate% tỷ lệ hoàn thành</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4 pt-4 border-top d-flex justify-content-around">
+        <button class="btn btn-sm btn-light rounded-pill px-3"><i class="bi bi-heart me-1"></i> Lưu</button>
+        <button class="btn btn-sm btn-light rounded-pill px-3"><i class="bi bi-share me-1"></i> Chia sẻ</button>
+    </div>
+</div>

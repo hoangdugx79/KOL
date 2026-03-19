@@ -1,0 +1,116 @@
+@model KOL_KOC_TAAA.Models.Booking
+@{
+    ViewData["Title"] = "Thanh toán Đơn hàng";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <a asp-action="MyRequests" class="text-decoration-none text-muted small hover-indigo">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại danh sách
+                </a>
+                <h2 class="lux-h2 mt-2">Thanh toán & Nạp tiền Escrow</h2>
+                <p class="text-muted small">Tiền của bạn sẽ được hệ thống giữ an toàn và chỉ giải ngân sau khi bạn xác nhận hoàn thành công việc.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-7">
+                    <div class="dash-card p-4 h-100 shadow-sm border-0">
+                        <h5 class="fw-bold mb-4" style="font-size: 0.95rem;">Phương thức thanh toán</h5>
+                        
+                        <div class="payment-options d-grid gap-3">
+                            <label class="payment-method-card p-3 border rounded-3 position-relative cursor-pointer d-flex align-items-center gap-3 active" style="border-width: 2px !important; border-color: var(--lux-primary-indigo) !important; background: var(--lux-bg-stone);">
+                                <input type="radio" name="paymentType" value="transfer" checked class="d-none">
+                                <div class="icon-box bg-white shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-bank2 text-primary"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">Chuyển khoản Ngân hàng</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">Xử lý trong 5-10 phút</div>
+                                </div>
+                                <i class="bi bi-check-circle-fill position-absolute top-0 end-0 m-2 text-primary"></i>
+                            </label>
+
+                            <label class="payment-method-card p-3 border rounded-3 position-relative cursor-pointer d-flex align-items-center gap-3 opacity-50">
+                                <input type="radio" name="paymentType" value="wallet" class="d-none" disabled>
+                                <div class="icon-box bg-white shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                    <i class="bi bi-wallet2 text-success"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold small">Ví hệ thống</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">Số dư không đủ</div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="mt-4 p-3 bg-light rounded-3">
+                            <ul class="list-unstyled small mb-0 text-muted" style="font-size: 0.75rem; line-height: 1.6;">
+                                <li><i class="bi bi-shield-check me-2 text-primary"></i>Bảo vệ người mua 100%</li>
+                                <li><i class="bi bi-clock-history me-2 text-primary"></i>Tiền được giữ an toàn tại sàn (Escrow)</li>
+                                <li><i class="bi bi-info-circle me-2 text-primary"></i>Hỗ trợ hoàn trả nếu KOL không thực hiện đơn hàng</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-5">
+                    <div class="dash-card p-4 shadow-sm border-0 sticky-top" style="top: 100px;">
+                        <h5 class="fw-bold mb-4" style="font-size: 0.95rem;">Chi tiết đơn hàng</h5>
+                        
+                        <div class="d-flex justify-content-between mb-2 small text-muted font-monospace">
+                            <span>Mã đơn:</span>
+                            <span class="text-dark fw-bold">#@Model.Id.ToString()[..8].ToUpper()</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4 small text-muted">
+                            <span>Đối tác KOL:</span>
+                            <span class="text-dark fw-bold">@Model.KolUser?.User?.FullName</span>
+                        </div>
+
+                        <hr class="opacity-10 mb-4">
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Giá trị dịch vụ:</span>
+                            <span>@Model.TotalAmount.ToString("N0") @Model.Currency</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Phí nền tảng (5%):</span>
+                            <span>@((Model.TotalAmount * 0.05m).ToString("N0")) @Model.Currency</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between mt-3 pt-3 border-top">
+                            <span class="fw-bold">Tổng thanh toán:</span>
+                            <span class="fw-bold fs-5 text-primary">@((Model.TotalAmount * 1.05m).ToString("N0")) @Model.Currency</span>
+                        </div>
+
+                        <form asp-action="ConfirmPayment" method="post" class="mt-4">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="bookingId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-dark w-100 rounded-pill py-2 fw-bold lux-btn-indigo" style="font-size: 0.85rem;">
+                                XÁC NHẬN THANH TOÁN
+                            </button>
+                        </form>
+
+                        <p class="text-center text-muted mt-3 mb-0" style="font-size: 0.65rem;">
+                            Bằng cách xác nhận, bạn đồng ý với <a href="#" class="text-decoration-none border-bottom">Điều khoản dịch vụ</a> và <a href="#" class="text-decoration-none border-bottom">Chính sách Escrow</a> của chúng tôi.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .lux-btn-indigo {
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        border: none;
+    }
+    .lux-btn-indigo:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+        background: var(--lux-primary-indigo) !important;
+    }
+</style>

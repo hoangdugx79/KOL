@@ -1,0 +1,474 @@
+@model KOL_KOC_TAAA.Models.BookingRequest
+@using System.Text.Json
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = "Chi tiết yêu cầu hợp tác";
+
+    bool isKol = (bool)(ViewBag.IsKol ?? false);
+    bool isAdmin = (bool)(ViewBag.IsAdmin ?? false);
+
+    // Parse Notes JSON from first item
+    var item = Model.BookingRequestItems.FirstOrDefault();
+    string workingHour = "";
+    string extraNote = "";
+    if (item?.Notes != null)
+    {
+        try
+        {
+            var parsed = JsonSerializer.Deserialize<JsonElement>(item.Notes);
+            workingHour = parsed.TryGetProperty("hour", out var h) ? h.GetString() ?? "" : "";
+            extraNote   = parsed.TryGetProperty("note", out var n) ? n.GetString() ?? "" : "";
+        }
+        catch { extraNote = item.Notes; }
+    }
+
+    string StatusClass(string s) => s switch {
+        "accepted" => "status-accepted",
+        "active_contract" => "status-active",
+        "rejected" => "status-rejected",
+        _ => "status-pending"
+    };
+    string StatusLabel(string s) => s switch {
+        "accepted" => "Đã chấp nhận",
+        "active_contract" => "Đang hợp tác",
+        "rejected" => "Từ chối",
+        _ => "Chờ duyệt"
+    };
+
+    int dayCount = 0;
+    if (Model.ProposedStartDate.HasValue && Model.ProposedEndDate.HasValue)
+        dayCount = (int)(Model.ProposedEndDate.Value.DayNumber - Model.ProposedStartDate.Value.DayNumber) + 1;
+
+    // Mini calendar vars
+    var calDate = Model.ProposedStartDate ?? DateOnly.FromDateTime(DateTime.Today);
+    var calYear = calDate.Year;
+    var calMonth = calDate.Month;
+    var firstOfMonth = new DateOnly(calYear, calMonth, 1);
+    var daysInMonth = DateTime.DaysInMonth(calYear, calMonth);
+    var startDow = (int)firstOfMonth.DayOfWeek;
+    var calOffset = startDow == 0 ? 6 : startDow - 1;
+    string[] calDayNames = { "T2","T3","T4","T5","T6","T7","CN" };
+    string[] calMonthNames = { "","Tháng 1","Tháng 2","Tháng 3","Tháng 4","Tháng 5","Tháng 6",
+        "Tháng 7","Tháng 8","Tháng 9","Tháng 10","Tháng 11","Tháng 12" };
+    var today2 = DateOnly.FromDateTime(DateTime.Today);
+}
+
+<style>
+    .rd-page { background: #0a0a0a; min-height: 100vh; padding: 2.5rem 0; }
+
+    /* Card base */
+    .rd-card {
+        background: #111;
+        border: 1px solid #222;
+        border-radius: 16px;
+        padding: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .rd-card-title {
+        color: #c9a84c;
+        font-size: .85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 1.25rem;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .rd-divider { border-color: #222; margin: 1.25rem 0; }
+
+    /* Info rows */
+    .info-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .85rem; }
+    .info-label { color: #666; font-size: .82rem; flex: 0 0 140px; }
+    .info-value { color: #ddd; font-size: .9rem; font-weight: 500; text-align: right; flex: 1; }
+
+    /* Status badges */
+    .status-badge { padding: .4rem 1rem; border-radius: 20px; font-size: .78rem; font-weight: 700; letter-spacing: .5px; }
+    .status-pending  { background: #2d2310; color: #f59e0b; border: 1px solid #92400e; }
+    .status-accepted { background: #0a2e1a; color: #34d399; border: 1px solid #065f46; }
+    .status-active   { background: #0d1b3e; color: #60a5fa; border: 1px solid #1e3a8a; }
+    .status-rejected { background: #2e0a0a; color: #f87171; border: 1px solid #7f1d1d; }
+
+    /* Calendar mini */
+    .mini-cal { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 12px; padding: 1.25rem; }
+    .mini-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .mini-cal-header { color: #555; font-size: .68rem; font-weight: 600; text-align: center; padding: .3rem 0; }
+    .mini-cal-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+                     border-radius: 8px; font-size: .75rem; color: #555; cursor: default; }
+    .mini-cal-cell.in-range { background: #1e3a5f; color: #60a5fa; }
+    .mini-cal-cell.range-start { background: #1d4ed8; color: #fff; font-weight: 700; }
+    .mini-cal-cell.range-end   { background: #1d4ed8; color: #fff; font-weight: 700; }
+    .mini-cal-cell.today-mark  { outline: 2px solid #c9a84c; }
+    .mini-cal-cell.other-month { opacity: .25; }
+    .cal-month-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .cal-month-label { color: #ccc; font-size: .85rem; font-weight: 600; }
+
+    /* Date range banner */
+    .date-banner {
+        background: linear-gradient(135deg, #0d1b3e, #1e3a5f);
+        border: 1px solid #2563eb44;
+        border-radius: 12px;
+        padding: 1.25rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+    .date-box { text-align: center; }
+    .date-box .d-label { color: #60a5fa; font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; }
+    .date-box .d-value { color: #fff; font-size: 1.1rem; font-weight: 700; }
+    .date-arrow { color: #3b82f6; font-size: 1.5rem; }
+    .date-days  { color: #93c5fd; font-size: .9rem; margin-left: auto; }
+
+    /* Time slots */
+    .hour-chip {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: #1a1a2e; border: 1.5px solid #3b4aff55;
+        border-radius: 20px; padding: .35rem .9rem;
+        color: #818cf8; font-size: .82rem; font-weight: 600;
+    }
+
+    /* Service chip */
+    .service-chip {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: #1a2e1a; border: 1.5px solid #16a34a44;
+        border-radius: 20px; padding: .4rem 1rem;
+        color: #4ade80; font-size: .85rem; font-weight: 600;
+    }
+
+    /* Budget display */
+    .budget-value { font-size: 1.5rem; font-weight: 800; color: #c9a84c; letter-spacing: .5px; }
+    .budget-label { color: #666; font-size: .75rem; }
+
+    /* Brief / notes */
+    .brief-box {
+        background: #0d0d0d; border-left: 3px solid #c9a84c33;
+        border-radius: 8px; padding: 1rem 1.25rem;
+        color: #bbb; font-size: .875rem; line-height: 1.7;
+        white-space: pre-wrap;
+    }
+    .note-box {
+        background: #0d0d0d; border-left: 3px solid #3b82f633;
+        border-radius: 8px; padding: 1rem 1.25rem;
+        color: #bbb; font-size: .875rem; line-height: 1.7;
+        white-space: pre-wrap;
+    }
+
+    /* People card */
+    .person-card {
+        display: flex; align-items: center; gap: 1rem;
+        background: #0d0d0d; border-radius: 12px; padding: 1rem 1.25rem;
+    }
+    .person-avatar {
+        width: 48px; height: 48px; border-radius: 50%;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 1.1rem; font-weight: 700; flex-shrink: 0;
+    }
+    .person-name { color: #eee; font-weight: 600; font-size: .9rem; }
+    .person-role { color: #666; font-size: .75rem; }
+
+    /* Action buttons */
+    .btn-accept { background: linear-gradient(135deg, #16a34a, #22c55e); color: #fff; border: none;
+                  border-radius: 10px; padding: .7rem 2rem; font-weight: 700; font-size: .9rem; }
+    .btn-accept:hover { background: linear-gradient(135deg, #15803d, #16a34a); color: #fff; }
+    .btn-reject { background: #1a0a0a; border: 1.5px solid #7f1d1d; color: #f87171;
+                  border-radius: 10px; padding: .7rem 2rem; font-weight: 600; font-size: .9rem; }
+    .btn-reject:hover { background: #2e0a0a; color: #fca5a5; border-color: #ef4444; }
+    .btn-back   { background: #1a1a1a; border: 1px solid #333; color: #999;
+                  border-radius: 10px; padding: .7rem 1.5rem; font-size: .875rem; }
+    .btn-back:hover { background: #222; color: #ccc; }
+</style>
+
+<div class="rd-page">
+    <div class="container" style="max-width:900px">
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert d-flex align-items-center gap-3 mb-4"
+                 style="background:#0a2e1a;border:1px solid #065f46;border-radius:12px;color:#34d399;padding:1rem 1.5rem;">
+                <i class="bi bi-check-circle-fill fs-5"></i>
+                <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        <!-- Header bar -->
+        <div class="d-flex align-items-center gap-3 mb-4 flex-wrap">
+            @if (isAdmin)
+            {
+                <a href="/Admin/Dashboard" class="btn-back btn">
+                    <i class="bi bi-arrow-left me-2"></i>Về Admin
+                </a>
+                <span class="px-3 py-1 rounded-pill" style="background:#1a0d2e;border:1px solid #7c3aed44;color:#a78bfa;font-size:.75rem;font-weight:700;letter-spacing:1px">
+                    <i class="bi bi-shield-check me-1"></i>CHẾ ĐỘ ADMIN
+                </span>
+            }
+            else
+            {
+                <a asp-controller="CreatorStudio" asp-action="Index" class="btn-back btn">
+                    <i class="bi bi-arrow-left me-2"></i>Quay lại Studio
+                </a>
+            }
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span class="status-badge @StatusClass(Model.Status)">@StatusLabel(Model.Status)</span>
+                <span class="text-muted small">ID: @Model.Id.ToString()[..8]...</span>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <h1 style="color:#fff;font-size:1.6rem;font-weight:800;margin-bottom:.5rem">@Model.Title</h1>
+        <p class="text-muted small mb-4">
+            <i class="bi bi-clock me-1"></i>Gửi lúc @Model.CreatedAt.ToString("HH:mm, dd/MM/yyyy")
+        </p>
+
+        <div class="row g-4">
+            <!-- LEFT COLUMN -->
+            <div class="col-lg-7">
+
+                <!-- Date range + mini calendar -->
+                <div class="rd-card">
+                    <div class="rd-card-title"><i class="bi bi-calendar3"></i> Lịch chiến dịch</div>
+
+                    @if (Model.ProposedStartDate.HasValue || Model.ProposedEndDate.HasValue)
+                    {
+                        <div class="date-banner">
+                            <div class="date-box">
+                                <div class="d-label">Ngày bắt đầu</div>
+                                <div class="d-value">@(Model.ProposedStartDate?.ToString("dd/MM/yyyy") ?? "—")</div>
+                            </div>
+                            <div class="date-arrow"><i class="bi bi-arrow-right"></i></div>
+                            <div class="date-box">
+                                <div class="d-label">Ngày kết thúc</div>
+                                <div class="d-value">@(Model.ProposedEndDate?.ToString("dd/MM/yyyy") ?? "—")</div>
+                            </div>
+                            @if (dayCount > 0)
+                            {
+                                <div class="date-days ms-auto">
+                                    <i class="bi bi-calendar-check me-1"></i>@dayCount ngày
+                                </div>
+                            }
+                        </div>
+
+                        <div class="mini-cal">
+                            <div class="cal-month-nav">
+                                <span class="cal-month-label">@calMonthNames[calMonth] @calYear</span>
+                            </div>
+                            <div class="mini-cal-grid">
+                                @foreach (var dn in calDayNames)
+                                {
+                                    <div class="mini-cal-header">@dn</div>
+                                }
+                                @for (int i = 0; i < calOffset; i++)
+                                {
+                                    <div class="mini-cal-cell other-month"></div>
+                                }
+                                @for (int d = 1; d <= daysInMonth; d++)
+                                {
+                                    var thisDay = new DateOnly(calYear, calMonth, d);
+                                    var css = "mini-cal-cell";
+                                    if (thisDay == Model.ProposedStartDate) css += " range-start";
+                                    else if (thisDay == Model.ProposedEndDate) css += " range-end";
+                                    else if (Model.ProposedStartDate.HasValue && Model.ProposedEndDate.HasValue &&
+                                             thisDay > Model.ProposedStartDate.Value && thisDay < Model.ProposedEndDate.Value)
+                                        css += " in-range";
+                                    if (thisDay == today2) css += " today-mark";
+                                    <div class="@css">@d</div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small">Chưa chọn ngày.</p>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(workingHour))
+                    {
+                        <hr class="rd-divider" />
+                        <div class="d-flex align-items-center gap-2 mt-2">
+                            <span class="text-muted small">Khung giờ làm việc:</span>
+                            <span class="hour-chip"><i class="bi bi-clock"></i>@workingHour</span>
+                        </div>
+                    }
+                </div>
+
+                <!-- Campaign description -->
+                <div class="rd-card">
+                    <div class="rd-card-title"><i class="bi bi-file-text"></i> Mô tả chiến dịch</div>
+                    @if (!string.IsNullOrWhiteSpace(Model.Brief))
+                    {
+                        <div class="brief-box">@Model.Brief</div>
+                    }
+                    else
+                    {
+                        <p class="text-muted small">Chưa có mô tả.</p>
+                    }
+                </div>
+
+                <!-- Notes -->
+                @if (!string.IsNullOrWhiteSpace(extraNote))
+                {
+                    <div class="rd-card">
+                        <div class="rd-card-title"><i class="bi bi-chat-left-text"></i> Ghi chú thêm từ khách hàng</div>
+                        <div class="note-box">@extraNote</div>
+                    </div>
+                }
+
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="col-lg-5">
+
+                <!-- Service + Budget -->
+                <div class="rd-card">
+                    <div class="rd-card-title"><i class="bi bi-box-seam"></i> Gói dịch vụ & Ngân sách</div>
+
+                    @if (item != null && !string.IsNullOrWhiteSpace(item.ServiceType))
+                    {
+                        <div class="mb-3">
+                            <div class="text-muted small mb-2">Gói dịch vụ / Nền tảng</div>
+                            <span class="service-chip">
+                                <i class="bi bi-phone"></i> @item.ServiceType
+                            </span>
+                        </div>
+                    }
+
+                    <hr class="rd-divider" />
+
+                    <div>
+                        <div class="text-muted small mb-1">Ngân sách dự kiến</div>
+                        @if (Model.BudgetMin.HasValue)
+                        {
+                            <div class="budget-value">@Model.BudgetMin.Value.ToString("N0")</div>
+                            <div class="budget-label">VND</div>
+                        }
+                        else
+                        {
+                            <div class="budget-value" style="font-size:1.1rem;color:#999">Thương lượng</div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Parties -->
+                <div class="rd-card">
+                    <div class="rd-card-title"><i class="bi bi-people"></i> Các bên liên quan</div>
+
+                    <div class="mb-3">
+                        <div class="text-muted small mb-2">Khách hàng</div>
+                        <div class="person-card">
+                            <div class="person-avatar">@(Model.CustomerUser?.FullName?.FirstOrDefault() ?? 'K')</div>
+                            <div>
+                                <div class="person-name">@(Model.CustomerUser?.FullName ?? "Khách hàng")</div>
+                                <div class="person-role">@(Model.CustomerUser?.Email ?? "")</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="text-muted small mb-2">KOL / KOC</div>
+                        <div class="person-card">
+                            <div class="person-avatar" style="background: linear-gradient(135deg, #c9a84c, #f59e0b); color:#000">
+                                @(Model.KolUser?.User?.FullName?.FirstOrDefault() ?? 'K')
+                            </div>
+                            <div>
+                                <div class="person-name">@(Model.KolUser?.User?.FullName ?? "KOL")</div>
+                                <div class="person-role">@(Model.KolUser?.InfluencerType ?? "Influencer")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Booking summary card -->
+                <div class="rd-card" style="background: linear-gradient(135deg,#0d1b3e22,#1e1a0e22); border-color: #c9a84c22;">
+                    <div class="rd-card-title"><i class="bi bi-check2-circle"></i> Tóm tắt booking</div>
+                    <div class="d-flex flex-column gap-2">
+                        <div class="info-row">
+                            <span class="info-label">📅 Thời gian</span>
+                            <span class="info-value" style="font-size:.82rem">
+                                @(Model.ProposedStartDate?.ToString("dd/MM/yyyy") ?? "?")
+                                @if (Model.ProposedEndDate.HasValue) { <text> → @Model.ProposedEndDate.Value.ToString("dd/MM/yyyy")</text> }
+                                @if (dayCount > 0) { <text> (@dayCount ngày)</text> }
+                            </span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(workingHour))
+                        {
+                            <div class="info-row">
+                                <span class="info-label">⏰ Khung giờ</span>
+                                <span class="info-value">@workingHour</span>
+                            </div>
+                        }
+                        @if (item != null && !string.IsNullOrWhiteSpace(item.ServiceType))
+                        {
+                            <div class="info-row">
+                                <span class="info-label">📱 Dịch vụ</span>
+                                <span class="info-value">@item.ServiceType</span>
+                            </div>
+                        }
+                        <div class="info-row">
+                            <span class="info-label">💰 Ngân sách</span>
+                            <span class="info-value" style="color:#c9a84c;font-weight:700">
+                                @(Model.BudgetMin.HasValue ? Model.BudgetMin.Value.ToString("N0") + " VND" : "Thương lượng")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KOL Action buttons -->
+                @if (isKol && !isAdmin && Model.Status == "sent")
+                {
+                    <div class="rd-card">
+                        <div class="rd-card-title"><i class="bi bi-lightning-charge"></i> Hành động</div>
+                        <div class="d-flex flex-column gap-2">
+                            <form asp-controller="Booking" asp-action="Respond" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@Model.Id" />
+                                <input type="hidden" name="status" value="accepted" />
+                                <button type="submit" class="btn btn-accept w-100">
+                                    <i class="bi bi-check-circle me-2"></i>Chấp nhận hợp tác
+                                </button>
+                            </form>
+                            <form asp-controller="Booking" asp-action="Respond" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="requestId" value="@Model.Id" />
+                                <input type="hidden" name="status" value="rejected" />
+                                <button type="submit" class="btn btn-reject w-100"
+                                        onclick="return confirm('Bạn chắc chắn muốn từ chối yêu cầu này?')">
+                                    <i class="bi bi-x-circle me-2"></i>Từ chối yêu cầu
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                @if (isKol && !isAdmin && Model.Status == "accepted")
+                {
+                    <div class="status-badge status-accepted d-block text-center p-3 rounded-3 mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>Đã chấp nhận yêu cầu này
+                    </div>
+                    @if (Model.Booking != null)
+                    {
+                        <a asp-controller="Booking" asp-action="Detail" asp-route-id="@Model.Booking.Id"
+                           class="btn w-100 d-flex align-items-center justify-content-center gap-2 mb-3"
+                           style="background:linear-gradient(135deg,#c9a84c,#f59e0b);color:#000;border:none;border-radius:10px;padding:.75rem 1.5rem;font-weight:700;font-size:.9rem;">
+                            <i class="bi bi-kanban"></i> QUẢN LÝ ĐƠN HÀNG
+                        </a>
+                    }
+                }
+                @if (!isAdmin && (Model.Status == "accepted" || Model.Status == "active_contract"))
+                {
+                    <a asp-controller="Chat" asp-action="Index"
+                       class="btn w-100 d-flex align-items-center justify-content-center gap-2"
+                       style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);color:#fff;border:none;border-radius:10px;padding:.75rem 1.5rem;font-weight:700;font-size:.9rem;">
+                        <i class="bi bi-chat-dots-fill"></i> Nhắn tin với @(isKol ? "Khách hàng" : "KOL")
+                    </a>
+                }
+                @if (isKol && !isAdmin && Model.Status == "rejected")
+                {
+                    <div class="status-badge status-rejected d-block text-center p-3 rounded-3">
+                        <i class="bi bi-x-circle-fill me-2"></i>Đã từ chối yêu cầu này
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

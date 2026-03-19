@@ -1,0 +1,124 @@
+@model IEnumerable<KOL_KOC_TAAA.Models.BookingRequest>
+@{
+    ViewData["Title"] = "Quản lý công việc";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="mb-4">
+    <h2 class="h4 fw-bold mb-1">Lời mời hợp tác</h2>
+    <p class="text-muted small">Nơi các nhãn hàng gửi gắm niềm tin vào sự sáng tạo của bạn.</p>
+</div>
+
+<div class="row g-4">
+    @if (Model != null && Model.Any())
+    {
+        @foreach (var item in Model)
+        {
+            <div class="col-12">
+                <div class="dash-card p-4 transition-all hover-shadow">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="avatar-lg rounded-circle bg-light d-flex align-items-center justify-content-center fw-bold text-dark" style="width: 54px; height: 54px;">
+                                 @if (!string.IsNullOrEmpty(item.CustomerUser?.AvatarUrl))
+                                {
+                                    <img src="@item.CustomerUser.AvatarUrl" class="w-100 h-100 rounded-circle" style="object-fit: cover;">
+                                }
+                                else
+                                {
+                                    @(item.CustomerUser?.FullName?[0..1] ?? "B")
+                                }
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">@item.CustomerUser?.FullName</h6>
+                                <p class="text-muted small mb-0">Đã gửi lúc @item.CreatedAt.ToString("HH:mm dd/MM/yyyy")</p>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                             @{
+                                    var badgeClass = item.Status switch
+                                    {
+                                        "sent" => "bg-warning-subtle text-warning",
+                                        "accepted" => "bg-success-subtle text-success",
+                                        "rejected" => "bg-danger-subtle text-danger",
+                                        "finalized" => "bg-indigo text-white",
+                                        _ => "bg-secondary-subtle text-secondary"
+                                    };
+                                }
+                                <span class="badge rounded-pill @badgeClass px-3 py-2" style="font-size: 0.65rem; font-weight: 600;">
+                                    @item.Status.ToUpper()
+                                </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 bg-light rounded-4 border border-light">
+                        <h5 class="fw-bold h6 mb-2">@item.Title</h5>
+                        <p class="text-muted small mb-0 line-clamp-2">@item.Brief</p>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <div class="text-muted lux-cap mb-1" style="font-size: 0.6rem;">Timeline</div>
+                            <div class="small fw-bold">@item.ProposedStartDate?.ToString("dd/MM") — @item.ProposedEndDate?.ToString("dd/MM")</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-muted lux-cap mb-1" style="font-size: 0.6rem;">Ngân sách</div>
+                            <div class="small fw-bold">@item.BudgetMin?.ToString("N0") — @item.BudgetMax?.ToString("N0") <small>@item.Currency</small></div>
+                        </div>
+                        <div class="col-md-6 text-end d-flex align-items-end justify-content-end gap-2">
+                             @foreach(var conv in item.ChatConversations)
+                             {
+                                 <a asp-controller="Chat" asp-action="Conversation" asp-route-id="@conv.Id" class="btn btn-outline-dark rounded-pill px-4 btn-sm">
+                                     <i class="bi bi-chat-dots me-2"></i> Thương lượng
+                                 </a>
+                             }
+                             
+                             @if (item.Status == "sent")
+                             {
+                                 <form asp-action="Respond" method="post" class="d-inline">
+                                     @Html.AntiForgeryToken()
+                                     <input type="hidden" name="requestId" value="@item.Id" />
+                                     <button type="submit" name="status" value="rejected" class="btn btn-link text-danger text-decoration-none small">Từ chối</button>
+                                     <button type="submit" name="status" value="accepted" class="btn btn-dark rounded-pill px-4 btn-sm ms-2">Chấp nhận</button>
+                                 </form>
+                             }
+                             else if (item.Status == "accepted" && item.Booking != null)
+                             {
+                                 <a asp-controller="Booking" asp-action="Detail" asp-route-id="@item.Booking.Id" class="btn btn-dark rounded-pill px-4 btn-sm">
+                                     <i class="bi bi-kanban me-2"></i> Quản lý đơn hàng
+                                 </a>
+
+                                 @if (item.Booking.Contracts.Any())
+                                 {
+                                     var contract = item.Booking.Contracts.OrderByDescending(c => c.Version).First();
+                                     <a asp-controller="Contract" asp-action="Details" asp-route-id="@contract.Id" class="btn btn-outline-primary rounded-pill px-4 btn-sm">
+                                         <i class="bi bi-file-earmark-text me-2"></i> Xem hợp đồng
+                                     </a>
+                                 }
+
+                                 @if (item.Booking.Status == "contract_signed" || item.Booking.Status == "work_submitted" || item.Booking.Status == "approved")
+                                 {
+                                     <a asp-controller="Deliverables" asp-action="Manage" asp-route-bookingId="@item.Booking.Id" class="btn btn-success rounded-pill px-4 btn-sm">
+                                         <i class="bi bi-briefcase me-2"></i> Tiến độ công việc
+                                     </a>
+                                 }
+                             }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12 text-center py-5">
+            <div class="opacity-25 mb-4"><i class="bi bi-suit-heart fs-1"></i></div>
+            <h5 class="fw-bold">Chưa có lời mời hợp tác mới</h5>
+            <p class="text-muted small">Hãy hoàn thiện hồ sơ thật tốt để thu hút các nhãn hàng nhé!</p>
+        </div>
+    }
+</div>
+
+<style>
+    .hover-shadow:hover { box-shadow: 0 15px 30px rgba(0,0,0,0.08) !important; transform: translateY(-3px); }
+    .bg-indigo { background: var(--lux-primary-indigo); }
+</style>

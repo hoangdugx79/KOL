@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MarketMarkt Dashboard</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/luxury-bento.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard-clean.css" asp-append-version="true" />
+    
+    @RenderSection("Styles", required: false)
+</head>
+<body class="dashboard-body">
+    <!-- Sidebar -->
+    <aside class="dash-sidebar">
+        <div class="p-4 mb-3">
+            <a href="/" class="text-decoration-none">
+                <span class="fs-4 fw-bold tracking-tighter" style="color: var(--dash-primary); font-family: 'Outfit', sans-serif;">
+                    KOL<span style="color: var(--dash-accent);">MARKT</span>
+                </span>
+            </a>
+        </div>
+        
+        <nav class="dash-nav">
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="px-4 mb-2 small text-muted lux-cap" style="font-size: 0.65rem;">Hệ thống</div>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" ? "active" : "")" href="/Admin">
+                    <i class="bi bi-speedometer2"></i> Tổng quan
+                </a>
+            }
+            
+            @if (User.IsInRole("KOL"))
+            {
+                <div class="px-4 mb-2 mt-3 small text-muted lux-cap" style="font-size: 0.65rem;">Công việc của tôi</div>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "KolProfile" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")" asp-controller="KolProfile" asp-action="Index">
+                    <i class="bi bi-person-circle"></i> Hồ sơ của tôi
+                </a>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Booking" && ViewContext.RouteData.Values["action"]?.ToString() == "ManageBookings" ? "active" : "")" asp-controller="Booking" asp-action="ManageBookings">
+                    <i class="bi bi-calendar-check"></i> Lời mời hợp tác
+                </a>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")" asp-controller="Chat" asp-action="Index">
+                    <i class="bi bi-chat-dots"></i> Tin nhắn
+                </a>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "KolProfile" && ViewContext.RouteData.Values["action"]?.ToString() == "RateCards" ? "active" : "")" asp-controller="KolProfile" asp-action="RateCards">
+                    <i class="bi bi-tag"></i> Bảng giá (Rate Cards)
+                </a>
+                 <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Wallet" ? "active" : "")" asp-controller="Wallet" asp-action="Index">
+                    <i class="bi bi-wallet2"></i> Ví & Thu nhập
+                </a>
+            }
+            
+            @if (User.IsInRole("Customer"))
+            {
+                <div class="px-4 mb-2 mt-3 small text-muted lux-cap" style="font-size: 0.65rem;">Brand Management</div>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Booking" && ViewContext.RouteData.Values["action"]?.ToString() == "MyRequests" ? "active" : "")" asp-controller="Booking" asp-action="MyRequests">
+                    <i class="bi bi-briefcase"></i> Chiến dịch đã gửi
+                </a>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Chat" ? "active" : "")" asp-controller="Chat" asp-action="Index">
+                    <i class="bi bi-chat-dots"></i> Tin nhắn
+                </a>
+                <a class="dash-nav-link" asp-controller="Search" asp-action="Index">
+                    <i class="bi bi-search"></i> Tìm kiếm tài năng
+                </a>
+                <a class="dash-nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Wallet" ? "active" : "")" asp-controller="Wallet" asp-action="Index">
+                    <i class="bi bi-credit-card"></i> Thanh toán & Ví
+                </a>
+            }
+
+            <div class="mt-auto pt-5">
+                <form asp-controller="Auth" asp-action="Logout" method="post" class="px-2">
+                    <button type="submit" class="dash-nav-link w-100 border-0 bg-transparent text-danger">
+                        <i class="bi bi-box-arrow-right"></i> Đăng xuất
+                    </button>
+                </form>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Header -->
+    <header class="dash-header">
+        <div class="d-flex align-items-center">
+            <button class="btn d-lg-none me-3" onclick="document.querySelector('.dash-sidebar').classList.toggle('show')">
+                <i class="bi bi-list fs-4"></i>
+            </button>
+            <div class="search-box d-none d-md-flex align-items-center bg-light px-3 rounded-pill" style="height: 38px;">
+                <i class="bi bi-search text-muted me-2"></i>
+                <input type="text" class="bg-transparent border-0 small" placeholder="Tìm kiếm nhanh..." style="outline: none; width: 200px;">
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-4">
+            <div class="position-relative" id="notification-dropdown-wrapper">
+                <i class="bi bi-bell fs-5 text-muted cursor-pointer" id="notification-bell"></i>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white d-none" id="notification-badge" style="font-size: 0.5rem; padding: 0.3em 0.5em;">0</span>
+                
+                <!-- Notification Dropdown Content -->
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3 p-0 overflow-hidden d-none" id="notification-list-container" style="width: 320px; border-radius: 20px; z-index: 1050;">
+                    <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                        <label class="fw-bold small mb-0">Thông báo mới</label>
+                        <button class="btn btn-link p-0 small text-decoration-none" id="mark-all-read">Đọc hết</button>
+                    </div>
+                    <div id="notification-items" style="max-height: 400px; overflow-y: auto;">
+                        <div class="p-4 text-center text-muted small italic">Đang tải thông báo...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-3 border-start ps-4">
+                <div class="text-end d-none d-sm-block">
+                    <div class="fw-bold small">@Context.Session.GetString("UserName")</div>
+                    <div class="text-muted" style="font-size: 0.7rem;">@User.Claims.FirstOrDefault(c => c.Type == System.Security.Claims.ClaimTypes.Role)?.Value</div>
+                </div>
+                <div class="avatar-circle rounded-circle bg-indigo-subtle d-flex align-items-center justify-content-center text-primary fw-bold" style="width: 40px; height: 40px; background: rgba(26, 35, 126, 0.1);">
+                    @(Context.Session.GetString("UserName")?[0..1] ?? "U")
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Area -->
+    <main class="dash-main">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4 rounded-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i> @TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        
+        @RenderBody()
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const bell = document.getElementById('notification-bell');
+            const list = document.getElementById('notification-list-container');
+            const items = document.getElementById('notification-items');
+            const badge = document.getElementById('notification-badge');
+
+            // Toggle dropdown
+            bell.addEventListener('click', (e) => {
+                e.stopPropagation();
+                list.classList.toggle('d-none');
+                fetchNotifications();
+            });
+
+            document.addEventListener('click', () => list.classList.add('d-none'));
+
+            async function fetchNotifications() {
+                try {
+                    const response = await fetch('/Notification/GetLatest');
+                    const data = await response.json();
+
+                    if (data.unreadCount > 0) {
+                        badge.textContent = data.unreadCount;
+                        badge.classList.remove('d-none');
+                    } else {
+                        badge.classList.add('d-none');
+                    }
+
+                    if (data.notifications.length > 0) {
+                        items.innerHTML = data.notifications.map(n => `
+                            <a href="#" class="list-group-item list-group-item-action p-3 border-0 border-bottom border-light ${n.isRead ? 'opacity-75' : 'bg-indigo-subtle'}" style="font-size: 0.75rem;" onclick="markAsRead('${n.id}')">
+                                <div class="fw-bold mb-1">${n.title}</div>
+                                <div class="text-muted line-clamp-2">${n.body}</div>
+                                <div class="mt-1 text-end opacity-50" style="font-size: 0.6rem;">${new Date(n.createdAt).toLocaleTimeString()}</div>
+                            </a>
+                        `).join('');
+                    } else {
+                        items.innerHTML = '<div class="p-5 text-center text-muted small italic">Không có thông báo mới</div>';
+                    }
+                } catch (e) { console.error("Error fetching notifications", e); }
+            }
+
+            // Initial call to set badge
+            fetchNotifications();
+            setInterval(fetchNotifications, 60000); // Check every minute
+        });
+
+        async function markAsRead(id) {
+            await fetch(\`/Notification/MarkAsRead?id=\${id}\`, { method: 'POST' });
+        }
+    </script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

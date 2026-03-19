@@ -1,0 +1,114 @@
+@model KOL_KOC_TAAA.Models.KolProfile
+@{
+    ViewData["Title"] = "Hồ sơ của tôi";
+    Layout = "_LayoutDashboard";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="h4 fw-bold mb-0">Hồ sơ của tôi</h2>
+    <a asp-action="Edit" class="btn btn-dark rounded-pill px-4">
+        <i class="bi bi-pencil-square me-2"></i> Chỉnh sửa
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- Main Info Card -->
+    <div class="col-lg-8">
+        <div class="dash-card mb-4">
+            <div class="d-flex align-items-center gap-4 mb-4">
+                <div class="position-relative">
+                    <img src="@(Model.User?.AvatarUrl ?? "https://ui-avatars.com/api/?name=" + Model.User?.Email)" class="rounded-circle border" style="width: 100px; height: 100px; object-fit: cover;">
+                    @if (Model.IsVerified)
+                    {
+                        <span class="position-absolute bottom-0 end-0 bg-white rounded-circle p-1" style="transform: translate(5%, 5%);">
+                            <i class="bi bi-patch-check-fill text-primary fs-5"></i>
+                        </span>
+                    }
+                </div>
+                <div>
+                    <h3 class="h5 fw-bold mb-1">@Model.User?.FullName</h3>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="dash-badge bg-primary text-white" style="font-size: 0.6rem;">@Model.InfluencerType</span>
+                        <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i> @Model.LocationCity, @Model.LocationCountry</span>
+                    </div>
+                    <div class="d-flex gap-3 text-muted small">
+                        <span><strong>@Model.RatingCount</strong> Reviews</span>
+                        <span><strong>@Model.RatingAvg</strong>/5.0 Rating</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-top pt-4">
+                <h6 class="lux-cap mb-3" style="font-size: 0.7rem;">Giới thiệu bản thân</h6>
+                <p class="text-muted" style="line-height: 1.6;">@Model.Bio</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="dash-card h-100">
+                    <h6 class="lux-cap mb-3" style="font-size: 0.7rem;">Thống kê tổng hợp</h6>
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="h3 fw-bold mb-0">@((Model.KolSocialAccounts?.Sum(s => s.Followers) ?? 0).ToString("N0"))</div>
+                            <div class="text-muted small">Tổng followers</div>
+                        </div>
+                        <i class="bi bi-people fs-1 opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="dash-card h-100">
+                    <h6 class="lux-cap mb-3" style="font-size: 0.7rem;">Budget tối thiểu</h6>
+                    <div class="d-flex justify-content-between align-items-end">
+                        <div>
+                            <div class="h3 fw-bold mb-0">@Model.MinBudget?.ToString("N0") <span class="small fw-normal">VND</span></div>
+                            <div class="text-muted small">Mức khởi điểm</div>
+                        </div>
+                        <i class="bi bi-currency-dollar fs-1 opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div class="col-lg-4">
+        <div class="dash-card mb-4" style="background: var(--lux-primary-indigo); color: white;">
+            <h6 class="lux-cap mb-3 text-white-50" style="font-size: 0.7rem;">Độ hoàn thiện hồ sơ</h6>
+            <div class="progress mb-3" style="height: 8px; background: rgba(255,255,255,0.1);">
+                <div class="progress-bar" role="progressbar" style="width: 75%; background: var(--lux-accent-gold);" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p class="small mb-4 text-white-50">Hồ sơ càng đầy đủ, cơ hội được AI đề xuất cho nhãn hàng càng cao.</p>
+            <ul class="list-unstyled small mb-0">
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Xác thực tài khoản</li>
+                <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Thông tin cơ bản</li>
+                <li class="mb-2"><i class="bi bi-circle me-2"></i> Liên kết tối thiểu 2 mạng xã hội</li>
+                <li><i class="bi bi-circle me-2"></i> Thêm Portfolio dự án sáng tạo</li>
+            </ul>
+        </div>
+
+        <div class="dash-card">
+            <h6 class="lux-cap mb-3" style="font-size: 0.7rem;">Mạng xã hội đang kết nối</h6>
+            @if (Model.KolSocialAccounts != null && Model.KolSocialAccounts.Any())
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var acc in Model.KolSocialAccounts)
+                    {
+                        <div class="dash-badge bg-light text-dark d-flex align-items-center gap-2 border">
+                            <i class="bi bi-@(acc.Platform.ToLower())"></i> @acc.Platform
+                        </div>
+                    }
+                </div>
+                <div class="mt-4">
+                    <a asp-action="Socials" class="small text-decoration-none">Quản lý mạng xã hội <i class="bi bi-arrow-right ms-1"></i></a>
+                </div>
+            }
+            else
+            {
+                <p class="small text-muted mb-3">Bạn chưa kết nối mạng xã hội nào.</p>
+                <a asp-action="Socials" class="btn btn-outline-dark btn-sm rounded-pill w-100">Kết nối ngay</a>
+            }
+        </div>
+    </div>
+</div>

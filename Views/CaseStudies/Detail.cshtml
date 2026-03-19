@@ -1,0 +1,92 @@
+@model KOL_KOC_TAAA.ViewModels.CaseStudyViewModel
+@{
+    Layout = "_LayoutLuxury";
+    ViewData["Title"] = $"{Model.BrandName} - Case Study";
+}
+
+<section class="py-5" style="background: var(--lux-bg-stone); border-bottom: var(--lux-border);">
+    <div class="container py-5">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6" data-reveal="fade-right">
+                <a asp-action="Index" class="lux-link small mb-4 d-inline-block"><i class="bi bi-arrow-left me-1"></i> Quay lại danh sách</a>
+                <span class="lux-cap mb-3 d-block text-gold">@Model.CampaignGoal</span>
+                <h1 class="lux-h1 mb-4">Chiến dịch <br><span class="text-gradient-gold">@Model.BrandName</span></h1>
+                <div class="d-flex gap-5 mb-5">
+                    <div>
+                        <div class="fs-2 fw-bold text-dark">@Model.ResultHighlight</div>
+                        <div class="small text-muted text-uppercase ls-1">Tăng trưởng</div>
+                    </div>
+                    <div>
+                        <div class="fs-2 fw-bold text-dark">50+</div>
+                        <div class="small text-muted text-uppercase ls-1">KOL Tham gia</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6" data-reveal="fade-left">
+                <div class="lux-surface p-2">
+                    <img src="@Model.ImageUrl" class="img-fluid w-100" alt="@Model.BrandName">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container py-5 my-5">
+    <div class="row g-5">
+        <div class="col-lg-8" data-reveal="fade-up">
+            <h3 class="lux-h2 mb-4">Thách thức & Mục tiêu</h3>
+            <p class="text-muted fs-5 mb-5 lh-lg">
+                @Model.Description. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+            </p>
+
+            <h3 class="lux-h2 mb-4">Chiến lược triển khai</h3>
+            <div class="row g-4 mb-5">
+                <div class="col-md-6">
+                    <div class="lux-surface p-4 border-start border-gold border-4">
+                        <h6 class="fw-bold mb-2">Lựa chọn Tài năng</h6>
+                        <p class="small text-muted mb-0">Quá trình sàng lọc dựa trên Data-driven để tìm ra 50 gương mặt phù hợp nhất với tệp khách hàng Gen Z.</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="lux-surface p-4 border-start border-gold border-4">
+                        <h6 class="fw-bold mb-2">Đa kênh phủ sóng</h6>
+                        <p class="small text-muted mb-0">Kết hợp TikTok Viral Video, Instagram Bio Link và Reels để tối đa hóa điểm chạm khách hàng.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="lux-h2 mb-4">Kết quả đạt được</h3>
+            <div class="lux-surface p-5 bg-dark text-white mb-5">
+                <div class="row text-center g-4">
+                    <div class="col-md-4">
+                        <div class="fs-1 fw-bold text-gold">15M+</div>
+                        <div class="small opacity-50 text-uppercase">Lượt hiển thị</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fs-1 fw-bold text-gold">850K+</div>
+                        <div class="small opacity-50 text-uppercase">Lượt tương tác</div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="fs-1 fw-bold text-gold">12%</div>
+                        <div class="small opacity-50 text-uppercase">Tỷ lệ CTR</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4" data-reveal="fade-up" data-reveal-delay="200">
+            <div class="lux-surface p-4 sticky-top" style="top: 100px;">
+                <h5 class="lux-h2 mb-4">Quan tâm đến giải pháp này?</h5>
+                <p class="small text-muted mb-4">Chúng tôi có thể thiết kế một chiến dịch tương tự dành riêng cho thương hiệu của bạn.</p>
+                <div class="d-grid gap-3">
+                    <button class="lux-btn-primary">LIÊN HỆ TƯ VẤN</button>
+                    <a asp-controller="Discovery" asp-action="Index" class="lux-btn-outline text-center">XEM MẠNG LƯỚI KOL</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-gold { border-color: var(--lux-accent-gold) !important; }
+</style>
