@@ -480,8 +480,14 @@
                 setTimeout(()=>{ new bootstrap.Modal(document.getElementById('successModal')).show(); }, 300);
             } else if (res.status === 401) {
                 window.location.href = '/Auth/Login';
+            } else if (res.status === 403) {
+                alert('Bạn cần đăng nhập bằng tài khoản Nhãn hàng (Customer) để đặt lịch hợp tác.');
+                window.location.href = '/Auth/AccessDenied';
             } else {
-                const err = await res.json().catch(()=>({}));
+                const contentType = res.headers.get('content-type') || '';
+                const err = contentType.includes('application/json')
+                    ? await res.json().catch(()=>({}))
+                    : {};
                 alert(err.message || 'Gửi yêu cầu thất bại. Vui lòng thử lại.');
             }
         } catch(e) {

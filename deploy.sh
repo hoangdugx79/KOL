@@ -97,6 +97,12 @@ server {
     listen 80;
     server_name $DOMAIN;
 
+  # Ưu tiên proto gốc từ Cloudflare; fallback về proto tại Nginx
+  set $forwarded_proto $scheme;
+  if ($http_x_forwarded_proto != "") {
+    set $forwarded_proto $http_x_forwarded_proto;
+  }
+
     # Giới hạn upload file 50MB
     client_max_body_size 50M;
 
@@ -108,7 +114,7 @@ server {
         proxy_set_header Host \$host;
         proxy_set_header X-Real-IP \$remote_addr;
         proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_set_header X-Forwarded-Proto \$forwarded_proto;
         proxy_cache_bypass \$http_upgrade;
 
         # Timeout cho các request dài (SignalR, upload)
@@ -121,6 +127,7 @@ server {
     location ~* \.(css|js|jpg|jpeg|png|gif|ico|svg|woff|woff2|ttf|eot)$ {
         proxy_pass http://localhost:5000;
         proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-Proto \$forwarded_proto;
         expires 30d;
         add_header Cache-Control "public, immutable";
     }
@@ -168,7 +175,7 @@ fi
 log "--- Bước 3: Build & Publish (.NET) ---"
 rm -rf "$BUILD_DIR"
 
-if dotnet publish $PROJECT_NAME/$PROJECT_NAME.csproj -c Release -o "$BUILD_DIR"; then
+if dotnet publish "$PROJECT_NAME.csproj" -c Release -o "$BUILD_DIR"; then
     log "✅ Build & Publish thành công!"
 else
     log "❌ Build thất bại! Web cũ vẫn an toàn. Hủy deploy."
@@ -232,12 +239,21 @@ EOF
 # BƯỚC 5: TRÁO ĐỔI CODE (SWAP) & KHỞI ĐỘNG
 # ============================================================
 log "--- Bước 5: Tráo đổi code cũ → mới ---"
+
+# Nếu bản cũ chưa dùng symlink uploads, sao lưu file upload ra DATA_DIR trước khi swap
+if [ -d "$APP_DIR/wwwroot/uploads" ] && [ ! -L "$APP_DIR/wwwroot/uploads" ]; then
+  mkdir -p "$DATA_DIR/uploads"
+  cp -a "$APP_DIR/wwwroot/uploads/." "$DATA_DIR/uploads/" 2>/dev/null || true
+fi
+
 rm -rf "$APP_DIR"
 mv "$BUILD_DIR" "$APP_DIR"
 
 # Symlink thư mục uploads (giữ file upload qua các lần deploy)
 mkdir -p "$APP_DIR/wwwroot"
-ln -sf "$DATA_DIR/uploads" "$APP_DIR/wwwroot/uploads"
+mkdir -p "$DATA_DIR/uploads/avatars" "$DATA_DIR/uploads/portfolio"
+rm -rf "$APP_DIR/wwwroot/uploads"
+ln -sfn "$DATA_DIR/uploads" "$APP_DIR/wwwroot/uploads"
 
 # ============================================================
 # BƯỚC 6: KHỞI ĐỘNG APP

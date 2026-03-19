@@ -7,6 +7,8 @@
     var socialAccounts = ViewBag.SocialAccounts as List<KolSocialAccount> ?? new List<KolSocialAccount>();
     var portfolios = ViewBag.Portfolios as List<KolPortfolio> ?? new List<KolPortfolio>();
     var rateCards = ViewBag.RateCards as List<RateCard> ?? new List<RateCard>();
+    var defaultAvatar = "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.FullName ?? "KOL") + "&background=C9A84C&color=fff&size=160";
+    var avatarSrc = string.IsNullOrEmpty(Model.AvatarUrl) ? defaultAvatar : Model.AvatarUrl;
 }
 
 @if (TempData["SuccessMessage"] != null)
@@ -37,7 +39,8 @@
             <div class="lux-surface p-4 text-center mb-4 sticky-top" style="top:90px;">
                 <div class="position-relative d-inline-block mb-3">
                     <img id="avatarPreview"
-                         src="@(string.IsNullOrEmpty(Model.AvatarUrl) ? "https://ui-avatars.com/api/?name=" + Uri.EscapeDataString(Model.FullName ?? "KOL") + "&background=C9A84C&color=fff&size=160" : Model.AvatarUrl)"
+                        src="@avatarSrc"
+                        onerror="this.onerror=null;this.src='@defaultAvatar';"
                          alt="Avatar"
                          class="rounded-circle border border-2"
                          style="width:110px;height:110px;object-fit:cover;border-color:var(--lux-accent-gold)!important;">
